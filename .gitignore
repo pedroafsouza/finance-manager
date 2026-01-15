@@ -17,6 +17,10 @@ src/data/*
 !src/data/demo.db-shm
 !src/data/demo.db-wal
 
+# Dependencies
+node_modules/
+**/node_modules/
+
 # Excel temp files
 ~$*.xlsx
 

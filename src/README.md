@@ -258,10 +258,10 @@ Tests the data clearing functionality.
 
 ## Documentation
 
-- **[TASKS.md](../TASKS.md)** - Development tasks and progress tracking
-- **[TEST_SUMMARY.md](../TEST_SUMMARY.md)** - Test suite summary
-- **[ANONYMIZATION.md](../ANONYMIZATION.md)** - Data anonymization guide
-- **[CLEAR_DATA_FEATURE.md](../CLEAR_DATA_FEATURE.md)** - Clear data feature documentation
+- **[TASKS.md](../docs/TASKS.md)** - Development tasks and progress tracking
+- **[TEST_SUMMARY.md](../docs/TEST_SUMMARY.md)** - Test suite summary
+- **[ANONYMIZATION.md](../docs/ANONYMIZATION.md)** - Data anonymization guide
+- **[CLEAR_DATA_FEATURE.md](../docs/CLEAR_DATA_FEATURE.md)** - Clear data feature documentation
 - **[__tests__/README.md](./__tests__/README.md)** - Testing guide
 
 ## Contributing
