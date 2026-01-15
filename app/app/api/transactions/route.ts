@@ -6,8 +6,8 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    initDb();
-    const db = getDb();
+    await initDb();
+    const db = await getDb();
 
     const transactions = db.prepare(`
       SELECT * FROM transactions

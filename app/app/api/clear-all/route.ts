@@ -9,8 +9,8 @@ export const dynamic = 'force-dynamic';
 export async function POST() {
   try {
     // Initialize database if not exists
-    initDb();
-    const db = getDb();
+    await initDb();
+    const db = await getDb();
 
     // Get count before deletion
     const countBefore = db.prepare('SELECT COUNT(*) as count FROM stock_grants').get() as { count: number };
@@ -72,7 +72,7 @@ export async function DELETE() {
     }
 
     // Reinitialize database
-    initDb();
+    await initDb();
 
     return NextResponse.json({
       success: true,

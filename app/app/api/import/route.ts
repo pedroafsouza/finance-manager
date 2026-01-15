@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 export async function POST(request: NextRequest) {
   try {
     // Initialize database if not exists
-    initDb();
+    await initDb();
 
     const formData = await request.formData();
     const file = formData.get('file') as File;
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Insert into database
-    const db = getDb();
+    const db = await getDb();
 
     const insertStmt = db.prepare(`
       INSERT INTO stock_grants (

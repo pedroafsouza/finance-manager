@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 export async function POST(request: NextRequest) {
   try {
     // Initialize database if needed
-    initDb();
+    await initDb();
 
     const formData = await request.formData();
     const file = formData.get('file') as File;
@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
     console.log(`Parsed ${holdings.length} holdings and ${transactions.length} transactions`);
 
     // Insert data into database
-    const db = getDb();
+    const db = await getDb();
 
     try {
       db.exec('BEGIN TRANSACTION');

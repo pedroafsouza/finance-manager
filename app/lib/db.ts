@@ -9,11 +9,11 @@ if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
 }
 
-export const getDb = () => {
+export const getDb = async () => {
   // Check if demo mode is enabled via cookie
   let isDemoMode = false;
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const demoModeCookie = cookieStore.get('demoMode');
     isDemoMode = demoModeCookie?.value === 'true';
   } catch (error) {
@@ -29,8 +29,8 @@ export const getDb = () => {
   return db;
 };
 
-export const initDb = () => {
-  const db = getDb();
+export const initDb = async () => {
+  const db = await getDb();
 
   // Create transactions table - stores all activities
   db.exec(`

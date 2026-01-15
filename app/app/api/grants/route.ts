@@ -7,9 +7,9 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   try {
     // Initialize database if not exists
-    initDb();
+    await initDb();
 
-    const db = getDb();
+    const db = await getDb();
 
     const grants = db.prepare(`
       SELECT * FROM stock_grants
@@ -34,8 +34,8 @@ export async function GET() {
 
 export async function DELETE() {
   try {
-    initDb();
-    const db = getDb();
+    await initDb();
+    const db = await getDb();
 
     db.prepare('DELETE FROM stock_grants').run();
     db.close();

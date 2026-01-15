@@ -39,24 +39,24 @@ export default function EventDetailsSidebar({ event, isOpen, onClose }: EventDet
 
       {/* Sidebar */}
       <aside
-        className={`fixed right-0 top-0 h-full w-full md:w-[400px] bg-white dark:bg-gray-900 shadow-2xl
+        className={`fixed right-0 top-0 h-full w-full md:w-[400px] bg-background shadow-2xl border-l border-border
                    transform transition-transform duration-300 ease-in-out z-50 overflow-y-auto
                    ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
       >
         {/* Header */}
-        <div className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 p-6 z-10">
+        <div className="sticky top-0 bg-card border-b border-border p-6 z-10">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+              <h2 className="text-2xl font-bold text-foreground">
                 {formatDate(event.extendedProps.date)}
               </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              <p className="text-sm text-muted-foreground mt-1">
                 {event.extendedProps.transactions.length} transaction{event.extendedProps.transactions.length !== 1 ? 's' : ''}
               </p>
             </div>
             <button
               onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition"
+              className="text-muted-foreground hover:text-foreground transition"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -68,15 +68,15 @@ export default function EventDetailsSidebar({ event, isOpen, onClose }: EventDet
         {/* Summary Cards */}
         <div className="p-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-              <div className="text-sm text-gray-500 dark:text-gray-400">Total Value</div>
-              <div className="text-xl font-bold text-gray-900 dark:text-white mt-1">
+            <div className="bg-card rounded-lg p-4 border border-border">
+              <div className="text-sm text-muted-foreground">Total Value</div>
+              <div className="text-xl font-bold text-foreground mt-1">
                 {formatCurrency(event.extendedProps.totalValue)}
               </div>
             </div>
-            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-              <div className="text-sm text-gray-500 dark:text-gray-400">Total Shares</div>
-              <div className="text-xl font-bold text-gray-900 dark:text-white mt-1">
+            <div className="bg-card rounded-lg p-4 border border-border">
+              <div className="text-sm text-muted-foreground">Total Shares</div>
+              <div className="text-xl font-bold text-foreground mt-1">
                 {event.extendedProps.totalShares.toFixed(3)}
               </div>
             </div>
@@ -84,7 +84,7 @@ export default function EventDetailsSidebar({ event, isOpen, onClose }: EventDet
 
           {/* Activity Types */}
           <div>
-            <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">Activity Types</div>
+            <div className="text-sm text-muted-foreground mb-2">Activity Types</div>
             <div className="flex flex-wrap gap-2">
               {event.extendedProps.activityTypes.map((type) => {
                 const color = getActivityColor(type);
@@ -103,7 +103,7 @@ export default function EventDetailsSidebar({ event, isOpen, onClose }: EventDet
 
           {/* Transaction List */}
           <div className="mt-6">
-            <div className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-3">
+            <div className="text-sm font-semibold text-muted-foreground mb-3">
               TRANSACTIONS
             </div>
             <div className="space-y-3">
@@ -114,7 +114,7 @@ export default function EventDetailsSidebar({ event, isOpen, onClose }: EventDet
                 return (
                   <div
                     key={index}
-                    className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 hover:shadow-md transition"
+                    className="bg-card rounded-lg p-4 border border-border hover:shadow-md transition"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
@@ -123,11 +123,11 @@ export default function EventDetailsSidebar({ event, isOpen, onClose }: EventDet
                             className="w-3 h-3 rounded-full"
                             style={{ backgroundColor: color.bg }}
                           />
-                          <span className="text-sm font-medium text-gray-900 dark:text-white">
+                          <span className="text-sm font-medium text-foreground">
                             {transaction.activity_type}
                           </span>
                         </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+                        <div className="text-xs text-muted-foreground space-y-1">
                           <div>Ticker: <span className="font-semibold">{transaction.ticker}</span></div>
                           {transaction.num_shares !== undefined && transaction.num_shares !== null && (
                             <div>Shares: <span className="font-semibold">{transaction.num_shares.toFixed(3)}</span></div>
@@ -141,7 +141,7 @@ export default function EventDetailsSidebar({ event, isOpen, onClose }: EventDet
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-lg font-bold text-gray-900 dark:text-white">
+                        <div className="text-lg font-bold text-foreground">
                           {formatCurrency(value)}
                         </div>
                       </div>

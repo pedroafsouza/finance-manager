@@ -5,7 +5,11 @@ import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import type { Options } from 'highcharts';
 import WelcomeDialog from './components/WelcomeDialog';
-import { useDemoMode } from './contexts/DemoModeContext';
+import { useDemoModeStore } from '@/lib/stores/demo-mode-store';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Eye, Upload, Calendar as CalendarIcon, TrendingUp, Package } from 'lucide-react';
 
 const Highcharts = dynamic(() => import('highcharts'), { ssr: false });
 const HighchartsReact = dynamic(() => import('highcharts-react-official'), { ssr: false });
@@ -23,7 +27,7 @@ interface StockGrant {
 export default function Home() {
   const [grants, setGrants] = useState<StockGrant[]>([]);
   const [loading, setLoading] = useState(true);
-  const { isDemoMode, toggleDemoMode } = useDemoMode();
+  const { isDemoMode, toggleDemoMode } = useDemoModeStore();
 
   useEffect(() => {
     fetchGrants();
@@ -108,8 +112,8 @@ export default function Home() {
     return (
       <>
         <WelcomeDialog />
-        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 font-sans dark:from-gray-900 dark:to-gray-800">
-          <div className="text-gray-600 dark:text-gray-400">Loading...</div>
+        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+          <div className="text-muted-foreground">Loading...</div>
         </div>
       </>
     );
@@ -119,70 +123,78 @@ export default function Home() {
     return (
       <>
         <WelcomeDialog />
-        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 font-sans dark:from-gray-900 dark:to-gray-800">
-          <main className="flex w-full max-w-4xl flex-col items-center gap-12 py-20 px-6">
+        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-6">
+          <main className="flex w-full max-w-4xl flex-col items-center gap-12">
             <div className="flex flex-col items-center gap-6 text-center">
-              <h1 className="text-5xl font-bold leading-tight tracking-tight text-gray-900 dark:text-white">
+              <h1 className="text-5xl font-bold leading-tight tracking-tight">
                 Skatly
               </h1>
-              <p className="max-w-2xl text-xl leading-relaxed text-gray-700 dark:text-gray-300">
+              <p className="max-w-2xl text-xl leading-relaxed text-muted-foreground">
                 Simplify your tax reporting and manage RSU stock grants from tech companies in Denmark
               </p>
             </div>
 
             {/* Call to Action */}
             {!isDemoMode && (
-              <div className="w-full max-w-2xl rounded-2xl bg-white p-8 shadow-lg dark:bg-gray-800 text-center">
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                  Get Started
-                </h2>
-                <p className="text-gray-600 dark:text-gray-400 mb-6">
-                  You haven't imported any data yet. Try demo mode to explore the app with sample data, or import your own Morgan Stanley PDF file.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <button
+              <Card className="w-full max-w-2xl">
+                <CardHeader>
+                  <CardTitle>Get Started</CardTitle>
+                  <CardDescription>
+                    You haven't imported any data yet. Try demo mode to explore the app with sample data, or import your own Morgan Stanley PDF file.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="flex flex-col sm:flex-row gap-4">
+                  <Button
                     onClick={toggleDemoMode}
-                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-purple-600 px-6 py-3 font-medium text-white hover:bg-purple-700 transition"
+                    className="flex items-center gap-2"
+                    variant="default"
                   >
-                    👁️ Try Demo Mode
-                  </button>
-                  <Link
-                    href="/imports"
-                    className="inline-flex items-center justify-center gap-2 rounded-lg border-2 border-blue-600 px-6 py-3 font-medium text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition"
-                  >
-                    📊 Import Your Data
-                  </Link>
-                </div>
-              </div>
+                    <Eye className="h-4 w-4" />
+                    Try Demo Mode
+                  </Button>
+                  <Button asChild variant="outline" className="flex items-center gap-2">
+                    <Link href="/imports">
+                      <Upload className="h-4 w-4" />
+                      Import Your Data
+                    </Link>
+                  </Button>
+                </CardContent>
+              </Card>
             )}
 
             <div className="grid w-full gap-6 md:grid-cols-3">
-              <div className="flex flex-col gap-3 rounded-2xl bg-white p-6 shadow-lg dark:bg-gray-800">
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  RSU Tracking
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Track vesting schedules, calculate taxable amounts, and manage your RSU grants
-                </p>
-              </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>RSU Tracking</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    Track vesting schedules, calculate taxable amounts, and manage your RSU grants
+                  </p>
+                </CardContent>
+              </Card>
 
-              <div className="flex flex-col gap-3 rounded-2xl bg-white p-6 shadow-lg dark:bg-gray-800">
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  Tax Calculation
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Automatically calculate Danish taxes on stock compensation and capital gains
-                </p>
-              </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Tax Calculation</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    Automatically calculate Danish taxes on stock compensation and capital gains
+                  </p>
+                </CardContent>
+              </Card>
 
-              <div className="flex flex-col gap-3 rounded-2xl bg-white p-6 shadow-lg dark:bg-gray-800">
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  SKAT Integration
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Generate reports ready for SKAT annual tax filing and documentation
-                </p>
-              </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>SKAT Integration</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    Generate reports ready for SKAT annual tax filing and documentation
+                  </p>
+                </CardContent>
+              </Card>
             </div>
           </main>
         </div>
@@ -192,134 +204,140 @@ export default function Home() {
 
   // Show dashboard when data exists
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 font-sans dark:from-gray-900 dark:to-gray-800">
-      <main className="mx-auto max-w-7xl px-6 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-6">
+      <main className="mx-auto max-w-7xl">
         <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-4xl font-bold">
             Portfolio Dashboard
           </h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-300">
+          <p className="mt-2 text-muted-foreground">
             {isDemoMode ? 'Exploring demo data with anonymized values' : 'Welcome back! Here\'s your portfolio overview'}
           </p>
           {isDemoMode && (
-            <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-purple-100 px-4 py-2 text-sm font-medium text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
-              👁️ Demo Mode Active - Switch to Live Data in the top right
-            </div>
+            <Badge variant="secondary" className="mt-4">
+              <Eye className="mr-1 h-3 w-3" />
+              Demo Mode Active - Switch to Live Data in the top right
+            </Badge>
           )}
         </div>
 
         {/* Summary Cards */}
         <div className="mb-8 grid gap-6 md:grid-cols-3">
-          <div className="rounded-2xl bg-white p-6 shadow-lg dark:bg-gray-800">
-            <div className="text-sm font-medium text-gray-600 dark:text-gray-400">
-              Total Portfolio Value
-            </div>
-            <div className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">
-              {formatCurrency(totalValue)}
-            </div>
-            <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-              Cost Basis: {formatCurrency(totalCostBasis)}
-            </div>
-          </div>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Total Portfolio Value</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">
+                {formatCurrency(totalValue)}
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Cost Basis: {formatCurrency(totalCostBasis)}
+              </p>
+            </CardContent>
+          </Card>
 
-          <div className="rounded-2xl bg-white p-6 shadow-lg dark:bg-gray-800">
-            <div className="text-sm font-medium text-gray-600 dark:text-gray-400">
-              Total Gain/Loss
-            </div>
-            <div
-              className={`mt-2 text-3xl font-bold ${
-                totalGainLoss >= 0
-                  ? 'text-green-600 dark:text-green-400'
-                  : 'text-red-600 dark:text-red-400'
-              }`}
-            >
-              {formatCurrency(totalGainLoss)}
-            </div>
-            <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-              {((totalGainLoss / totalCostBasis) * 100).toFixed(2)}% return
-            </div>
-          </div>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Total Gain/Loss</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div
+                className={`text-3xl font-bold ${
+                  totalGainLoss >= 0
+                    ? 'text-green-600 dark:text-green-400'
+                    : 'text-red-600 dark:text-red-400'
+                }`}
+              >
+                {formatCurrency(totalGainLoss)}
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                {((totalGainLoss / totalCostBasis) * 100).toFixed(2)}% return
+              </p>
+            </CardContent>
+          </Card>
 
-          <div className="rounded-2xl bg-white p-6 shadow-lg dark:bg-gray-800">
-            <div className="text-sm font-medium text-gray-600 dark:text-gray-400">
-              Total Grants
-            </div>
-            <div className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">
-              {grants.length}
-            </div>
-            <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-              Across {Object.keys(holdingsByTicker).length} ticker{Object.keys(holdingsByTicker).length !== 1 ? 's' : ''}
-            </div>
-          </div>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardDescription>Total Grants</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">
+                {grants.length}
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Across {Object.keys(holdingsByTicker).length} ticker{Object.keys(holdingsByTicker).length !== 1 ? 's' : ''}
+              </p>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Mini Chart */}
-        <div className="mb-8 rounded-2xl bg-white p-6 shadow-lg dark:bg-gray-800">
-          <h2 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
-            Holdings by Ticker
-          </h2>
-          {typeof window !== 'undefined' && Highcharts && (
-            <HighchartsReact highcharts={Highcharts} options={miniPieChart} />
-          )}
-        </div>
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>Holdings by Ticker</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {typeof window !== 'undefined' && Highcharts && (
+              <HighchartsReact highcharts={Highcharts} options={miniPieChart} />
+            )}
+          </CardContent>
+        </Card>
 
         {/* Quick Links */}
         <div className="grid gap-6 md:grid-cols-3">
-          <Link
-            href="/calendar"
-            className="flex flex-col gap-3 rounded-2xl bg-white p-6 shadow-lg transition-all hover:shadow-xl dark:bg-gray-800"
-          >
-            <div className="flex items-center space-x-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900">
-                <svg className="h-6 w-6 text-blue-600 dark:text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Vesting Calendar
-              </h3>
-            </div>
-            <p className="text-gray-600 dark:text-gray-400">
-              View your upcoming vesting schedule and track RSU grant dates
-            </p>
+          <Link href="/calendar" className="group">
+            <Card className="transition-all hover:shadow-lg">
+              <CardHeader>
+                <div className="flex items-center space-x-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900">
+                    <CalendarIcon className="h-6 w-6 text-blue-600 dark:text-blue-300" />
+                  </div>
+                  <CardTitle>Vesting Calendar</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  View your upcoming vesting schedule and track RSU grant dates
+                </p>
+              </CardContent>
+            </Card>
           </Link>
 
-          <Link
-            href="/reports"
-            className="flex flex-col gap-3 rounded-2xl bg-white p-6 shadow-lg transition-all hover:shadow-xl dark:bg-gray-800"
-          >
-            <div className="flex items-center space-x-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900">
-                <svg className="h-6 w-6 text-purple-600 dark:text-purple-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Reports & Analytics
-              </h3>
-            </div>
-            <p className="text-gray-600 dark:text-gray-400">
-              Comprehensive insights and detailed analytics of your portfolio
-            </p>
+          <Link href="/reports" className="group">
+            <Card className="transition-all hover:shadow-lg">
+              <CardHeader>
+                <div className="flex items-center space-x-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900">
+                    <TrendingUp className="h-6 w-6 text-purple-600 dark:text-purple-300" />
+                  </div>
+                  <CardTitle>Reports & Analytics</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Comprehensive insights and detailed analytics of your portfolio
+                </p>
+              </CardContent>
+            </Card>
           </Link>
 
-          <Link
-            href="/imports"
-            className="flex flex-col gap-3 rounded-2xl bg-white p-6 shadow-lg transition-all hover:shadow-xl dark:bg-gray-800"
-          >
-            <div className="flex items-center space-x-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
-                <svg className="h-6 w-6 text-green-600 dark:text-green-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Import More Data
-              </h3>
-            </div>
-            <p className="text-gray-600 dark:text-gray-400">
-              Upload additional Morgan Stanley Excel files to update your portfolio
-            </p>
+          <Link href="/imports" className="group">
+            <Card className="transition-all hover:shadow-lg">
+              <CardHeader>
+                <div className="flex items-center space-x-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
+                    <Upload className="h-6 w-6 text-green-600 dark:text-green-300" />
+                  </div>
+                  <CardTitle>Import More Data</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Upload additional Morgan Stanley PDF files to update your portfolio
+                </p>
+              </CardContent>
+            </Card>
           </Link>
         </div>
       </main>
