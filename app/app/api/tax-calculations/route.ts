@@ -1,15 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb, initDb } from '@/lib/db';
+import { getCalculationsDb, initLiveCalculationsDb, initDemoCalculationsDb } from '@/lib/db';
 import { calculateDanishTax, type TaxInput } from '@/lib/tax-calculator-danish';
+import { cookies } from 'next/headers';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+// Helper to initialize the correct calculations database
+async function initCalculationsDb() {
+  let isDemoMode = false;
+  try {
+    const cookieStore = await cookies();
+    const demoModeCookie = cookieStore.get('demoMode');
+    isDemoMode = demoModeCookie?.value === 'true';
+  } catch (error) {
+    isDemoMode = false;
+  }
+
+  if (isDemoMode) {
+    initDemoCalculationsDb();
+  } else {
+    initLiveCalculationsDb();
+  }
+}
+
 // GET - Fetch all tax calculations
 export async function GET() {
   try {
-    await initDb();
-    const db = await getDb();
+    await initCalculationsDb();
+    const db = await getCalculationsDb();
 
     const calculations = db.prepare(`
       SELECT * FROM tax_calculations
@@ -35,7 +54,7 @@ export async function GET() {
 // POST - Create new tax calculation
 export async function POST(request: NextRequest) {
   try {
-    await initDb();
+    await initCalculationsDb();
     const body = await request.json();
 
     const {
@@ -70,7 +89,7 @@ export async function POST(request: NextRequest) {
 
     const taxResult = calculateDanishTax(taxInput);
 
-    const db = await getDb();
+    const db = await getCalculationsDb();
 
     try {
       const stmt = db.prepare(`
@@ -131,7 +150,7 @@ export async function POST(request: NextRequest) {
 // PUT - Update existing tax calculation
 export async function PUT(request: NextRequest) {
   try {
-    await initDb();
+    await initCalculationsDb();
     const body = await request.json();
 
     const {
@@ -166,7 +185,7 @@ export async function PUT(request: NextRequest) {
 
     const taxResult = calculateDanishTax(taxInput);
 
-    const db = await getDb();
+    const db = await getCalculationsDb();
 
     const stmt = db.prepare(`
       UPDATE tax_calculations
@@ -232,7 +251,7 @@ export async function PUT(request: NextRequest) {
 // DELETE - Delete tax calculation
 export async function DELETE(request: NextRequest) {
   try {
-    await initDb();
+    await initCalculationsDb();
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
@@ -243,7 +262,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const db = await getDb();
+    const db = await getCalculationsDb();
 
     const stmt = db.prepare('DELETE FROM tax_calculations WHERE id = ?');
     const result = stmt.run(id);

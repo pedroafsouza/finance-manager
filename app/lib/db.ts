@@ -71,6 +71,27 @@ export const getSecretsDb = async () => {
   return db;
 };
 
+// Get calculations database (separate for both demo and live modes)
+export const getCalculationsDb = async () => {
+  // Check if demo mode is enabled via cookie
+  let isDemoMode = false;
+  try {
+    const cookieStore = await cookies();
+    const demoModeCookie = cookieStore.get('demoMode');
+    isDemoMode = demoModeCookie?.value === 'true';
+  } catch (error) {
+    // If cookies() fails (e.g., in non-request context), use default
+    isDemoMode = false;
+  }
+
+  const dbName = isDemoMode ? 'demo-calculations.db' : 'finance-calculations.db';
+  const dbPath = path.join(process.cwd(), 'data', dbName);
+
+  const db = new Database(dbPath);
+  db.pragma('journal_mode = WAL');
+  return db;
+};
+
 export const initDb = async () => {
   const db = await getDb();
 
@@ -132,31 +153,6 @@ export const initDb = async () => {
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     )
   `);
-
-  // Create tax_calculations table - Danish tax calculations by year
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS tax_calculations (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      year INTEGER NOT NULL UNIQUE,
-      yearly_salary_dkk REAL NOT NULL,
-      fradrag_dkk REAL NOT NULL,
-      amount_on_7p_dkk REAL NOT NULL,
-      amount_not_on_7p_dkk REAL NOT NULL,
-      microsoft_allowance_7p_dkk REAL NOT NULL,
-      preferred_currency TEXT DEFAULT 'DKK',
-      usd_to_dkk_rate REAL DEFAULT 6.9,
-      calculated_tax_dkk REAL,
-      am_bidrag_dkk REAL,
-      bottom_tax_dkk REAL,
-      top_tax_dkk REAL,
-      municipal_tax_dkk REAL,
-      total_tax_dkk REAL,
-      notes TEXT,
-      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-
 
   // Create indexes
   db.exec(`
@@ -252,3 +248,40 @@ export const initSecretsDb = (dbName: 'demo-secrets.db' | 'finance-secrets.db') 
 // Convenience functions
 export const initDemoSecretsDb = () => initSecretsDb('demo-secrets.db');
 export const initLiveSecretsDb = () => initSecretsDb('finance-secrets.db');
+
+// Initialize calculations databases (both demo and live)
+export const initCalculationsDb = (dbName: 'demo-calculations.db' | 'finance-calculations.db') => {
+  const dbPath = path.join(process.cwd(), 'data', dbName);
+  const db = new Database(dbPath);
+  db.pragma('journal_mode = WAL');
+
+  // Create tax_calculations table - Danish tax calculations by year
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS tax_calculations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      year INTEGER NOT NULL UNIQUE,
+      yearly_salary_dkk REAL NOT NULL,
+      fradrag_dkk REAL NOT NULL,
+      amount_on_7p_dkk REAL NOT NULL,
+      amount_not_on_7p_dkk REAL NOT NULL,
+      microsoft_allowance_7p_dkk REAL NOT NULL,
+      preferred_currency TEXT DEFAULT 'DKK',
+      usd_to_dkk_rate REAL DEFAULT 6.9,
+      calculated_tax_dkk REAL,
+      am_bidrag_dkk REAL,
+      bottom_tax_dkk REAL,
+      top_tax_dkk REAL,
+      municipal_tax_dkk REAL,
+      total_tax_dkk REAL,
+      notes TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  db.close();
+};
+
+// Convenience functions
+export const initDemoCalculationsDb = () => initCalculationsDb('demo-calculations.db');
+export const initLiveCalculationsDb = () => initCalculationsDb('finance-calculations.db');
