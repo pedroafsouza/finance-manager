@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  skatly:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: skatly-app
+    ports:
+      - "3000:3000"
+    volumes:
+      # Persist SQLite databases
+      - ./data:/app/data
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "bun", "run", "-e", "fetch('http://localhost:3000').then(r => r.ok ? process.exit(0) : process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

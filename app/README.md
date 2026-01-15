@@ -23,9 +23,46 @@ A Next.js application built with Bun to help manage taxes and RSU (Restricted St
 
 ### Prerequisites
 
-- Bun (install via `curl -fsSL https://bun.sh/install | bash`)
+- **Option 1 (Local Development)**: Bun (install via `curl -fsSL https://bun.sh/install | bash`)
+- **Option 2 (Docker)**: Docker and Docker Compose
 
-### Development
+### Running with Docker (Recommended for Production)
+
+The easiest way to run Skatly is using Docker:
+
+```bash
+# Using Docker Compose (recommended)
+docker-compose up -d
+
+# Or build and run manually
+docker build -t skatly .
+docker run -d \
+  -p 3000:3000 \
+  -v $(pwd)/data:/app/data \
+  --name skatly-app \
+  skatly
+```
+
+The application will be available at [http://localhost:3000](http://localhost:3000).
+
+**Volume Persistence**: The `./data` directory is mounted as a volume to persist your SQLite databases (both `finance.db` and `demo.db`) across container restarts.
+
+**Managing the Container**:
+```bash
+# View logs
+docker-compose logs -f
+
+# Stop the application
+docker-compose down
+
+# Restart the application
+docker-compose restart
+
+# Rebuild after code changes
+docker-compose up -d --build
+```
+
+### Local Development
 
 ```bash
 # Install dependencies
@@ -237,16 +274,40 @@ Private project for personal use.
 
 ## Troubleshooting
 
-### Database locked error
+### Docker Issues
+
+#### Container won't start
+Check logs: `docker-compose logs -f`
+
+#### Database locked error in Docker
+Ensure only one container instance is running: `docker ps`
+
+#### Port already in use
+Change the port mapping in `docker-compose.yml`:
+```yaml
+ports:
+  - "3001:3000"  # Changed from 3000:3000
+```
+
+#### Data not persisting
+Verify the volume mount is correct and the `./data` directory exists with proper permissions:
+```bash
+mkdir -p data
+chmod 755 data
+```
+
+### Local Development Issues
+
+#### Database locked error
 Stop any running dev servers and restart: `bun dev`
 
-### Import fails
+#### Import fails
 Check that the Excel file is in Morgan Stanley format. See sample at `data/morgan-stanley.xlsx`
 
-### Tests failing
+#### Tests failing
 Some tests require Node.js runtime. Use `bun run test:parser` for Bun-compatible tests.
 
-### Can't clear data
+#### Can't clear data
 Make sure you have write permissions to the `data/` directory.
 
 ## Next Steps
