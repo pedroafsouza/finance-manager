@@ -91,6 +91,30 @@ export const initDb = async () => {
     )
   `);
 
+  // Create tax_calculations table - Danish tax calculations by year
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS tax_calculations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      year INTEGER NOT NULL UNIQUE,
+      yearly_salary_dkk REAL NOT NULL,
+      fradrag_dkk REAL NOT NULL,
+      amount_on_7p_dkk REAL NOT NULL,
+      amount_not_on_7p_dkk REAL NOT NULL,
+      microsoft_allowance_7p_dkk REAL NOT NULL,
+      preferred_currency TEXT DEFAULT 'DKK',
+      usd_to_dkk_rate REAL DEFAULT 6.9,
+      calculated_tax_dkk REAL,
+      am_bidrag_dkk REAL,
+      bottom_tax_dkk REAL,
+      top_tax_dkk REAL,
+      municipal_tax_dkk REAL,
+      total_tax_dkk REAL,
+      notes TEXT,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
   // Create indexes
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_transactions_date

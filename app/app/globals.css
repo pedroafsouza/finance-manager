@@ -6,7 +6,7 @@
   --font-mono: var(--font-geist-mono);
 
   /* Beautiful Blue Theme */
-  --color-background: #ffffff;
+  --color-background: #f9fafb;
   --color-foreground: #0f172a;
   --color-card: #ffffff;
   --color-card-foreground: #0f172a;
@@ -30,7 +30,7 @@
 
 :root.dark {
   /* Dark theme with blue accents */
-  --color-background: #0f172a;
+  --color-background: #030712;
   --color-foreground: #f8fafc;
   --color-card: #1e293b;
   --color-card-foreground: #f8fafc;
@@ -53,13 +53,18 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not(.light) {
-    --color-background: #0f172a;
+    --color-background: #030712;
     --color-foreground: #f8fafc;
   }
+}
+
+html {
+  background: var(--color-background);
 }
 
 body {
   background: var(--color-background);
   color: var(--color-foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  min-height: 100vh;
 }

@@ -112,7 +112,7 @@ export default function Home() {
     return (
       <>
         <WelcomeDialog />
-        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+        <div className="flex min-h-screen items-center justify-center">
           <div className="text-muted-foreground">Loading...</div>
         </div>
       </>
@@ -123,7 +123,7 @@ export default function Home() {
     return (
       <>
         <WelcomeDialog />
-        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-6">
+        <div className="flex min-h-screen items-center justify-center p-6">
           <main className="flex w-full max-w-4xl flex-col items-center gap-12">
             <div className="flex flex-col items-center gap-6 text-center">
               <h1 className="text-5xl font-bold leading-tight tracking-tight">
@@ -136,7 +136,7 @@ export default function Home() {
 
             {/* Call to Action */}
             {!isDemoMode && (
-              <Card className="w-full max-w-2xl">
+              <Card className="w-full max-w-2xl shadow-lg">
                 <CardHeader>
                   <CardTitle>Get Started</CardTitle>
                   <CardDescription>
@@ -163,7 +163,7 @@ export default function Home() {
             )}
 
             <div className="grid w-full gap-6 md:grid-cols-3">
-              <Card>
+              <Card className="shadow-md">
                 <CardHeader>
                   <CardTitle>RSU Tracking</CardTitle>
                 </CardHeader>
@@ -174,7 +174,7 @@ export default function Home() {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="shadow-md">
                 <CardHeader>
                   <CardTitle>Tax Calculation</CardTitle>
                 </CardHeader>
@@ -185,7 +185,7 @@ export default function Home() {
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="shadow-md">
                 <CardHeader>
                   <CardTitle>SKAT Integration</CardTitle>
                 </CardHeader>
@@ -204,7 +204,7 @@ export default function Home() {
 
   // Show dashboard when data exists
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-6">
+    <div className="min-h-screen p-6">
       <main className="mx-auto max-w-7xl">
         <div className="mb-8 text-center">
           <h1 className="text-4xl font-bold">
@@ -223,7 +223,7 @@ export default function Home() {
 
         {/* Summary Cards */}
         <div className="mb-8 grid gap-6 md:grid-cols-3">
-          <Card>
+          <Card className="shadow-md">
             <CardHeader className="pb-2">
               <CardDescription>Total Portfolio Value</CardDescription>
             </CardHeader>
@@ -237,7 +237,7 @@ export default function Home() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="shadow-md">
             <CardHeader className="pb-2">
               <CardDescription>Total Gain/Loss</CardDescription>
             </CardHeader>
@@ -257,7 +257,7 @@ export default function Home() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="shadow-md">
             <CardHeader className="pb-2">
               <CardDescription>Total Grants</CardDescription>
             </CardHeader>
@@ -273,7 +273,7 @@ export default function Home() {
         </div>
 
         {/* Mini Chart */}
-        <Card className="mb-8">
+        <Card className="mb-8 shadow-md">
           <CardHeader>
             <CardTitle>Holdings by Ticker</CardTitle>
           </CardHeader>
@@ -287,7 +287,7 @@ export default function Home() {
         {/* Quick Links */}
         <div className="grid gap-6 md:grid-cols-3">
           <Link href="/calendar" className="group">
-            <Card className="transition-all hover:shadow-lg">
+            <Card className="shadow-md transition-all hover:shadow-xl">
               <CardHeader>
                 <div className="flex items-center space-x-3">
                   <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900">
@@ -305,7 +305,7 @@ export default function Home() {
           </Link>
 
           <Link href="/reports" className="group">
-            <Card className="transition-all hover:shadow-lg">
+            <Card className="shadow-md transition-all hover:shadow-xl">
               <CardHeader>
                 <div className="flex items-center space-x-3">
                   <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900">
@@ -323,7 +323,7 @@ export default function Home() {
           </Link>
 
           <Link href="/imports" className="group">
-            <Card className="transition-all hover:shadow-lg">
+            <Card className="shadow-md transition-all hover:shadow-xl">
               <CardHeader>
                 <div className="flex items-center space-x-3">
                   <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">

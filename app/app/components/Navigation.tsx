@@ -27,6 +27,7 @@ import {
   Eye,
   User,
   X,
+  Calculator,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -49,6 +50,7 @@ export default function Navigation() {
     { href: '/', label: 'Home', icon: Home },
     { href: '/calendar', label: 'Calendar', icon: Calendar },
     { href: '/reports', label: 'Reports', icon: BarChart3 },
+    { href: '/tax-calculator', label: 'Tax Calculator', icon: Calculator },
     { href: '/imports', label: 'Import Data', icon: Upload },
     { href: '/settings', label: 'Settings', icon: Settings },
   ];
@@ -58,7 +60,7 @@ export default function Navigation() {
   return (
     <>
       {/* Top Navigation Bar */}
-      <nav className="fixed left-0 right-0 top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <nav className="fixed left-0 right-0 top-0 z-50 border-b border-blue-700 bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-800 dark:to-indigo-800 dark:border-blue-900 text-white shadow-lg">
         <div className="px-4">
           <div className="flex h-16 items-center justify-between">
             {/* Left: Burger Menu & Logo */}
@@ -68,6 +70,7 @@ export default function Navigation() {
                 size="icon"
                 onClick={toggleMenu}
                 aria-label="Toggle menu"
+                className="text-white hover:bg-white/20"
               >
                 <Menu className="h-5 w-5" />
               </Button>
@@ -79,10 +82,10 @@ export default function Navigation() {
                   isMenuOpen ? "opacity-0 pointer-events-none" : "opacity-100"
                 )}
               >
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-sm">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-blue-600 font-bold text-sm shadow-sm">
                   SK
                 </div>
-                <span className="font-semibold">Skatly</span>
+                <span className="font-semibold text-white">Skatly</span>
               </Link>
             </div>
 
@@ -97,7 +100,7 @@ export default function Navigation() {
                   }
                 }}
               >
-                <SelectTrigger className="w-[120px] h-9">
+                <SelectTrigger className="w-[120px] h-9 bg-white/90 text-gray-900 border-white/20">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -122,6 +125,7 @@ export default function Navigation() {
                 size="icon"
                 onClick={toggleTheme}
                 aria-label="Toggle dark mode"
+                className="text-white hover:bg-white/20"
               >
                 {isDarkMode ? (
                   <Sun className="h-5 w-5" />
