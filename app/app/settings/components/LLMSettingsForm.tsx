@@ -216,10 +216,10 @@ export default function LLMSettingsForm() {
         )}
       </div>
 
-      {/* Security Notice */}
+      {/* Storage Notice */}
       <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
         <p className="text-sm text-blue-800 dark:text-blue-300">
-          <strong>🔒 Security:</strong> Your API keys are encrypted using AES-256-GCM before being stored in the database. They are never logged or transmitted to third parties.
+          <strong>🔒 Storage:</strong> Your API keys are stored in plain text in a separate database file for easy management. They are never logged or transmitted to third parties.
         </p>
       </div>
     </div>

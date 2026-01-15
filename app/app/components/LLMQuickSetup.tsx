@@ -223,7 +223,7 @@ export default function LLMQuickSetup({ onClose, onSuccess }: Props) {
             {/* Security Notice */}
             <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
               <p className="text-xs text-blue-800 dark:text-blue-300">
-                <strong>🔒 Secure:</strong> Your API keys are encrypted using AES-256-GCM before being stored.
+                <strong>🔒 Storage:</strong> Your API keys are stored in a separate database file for easy management.
               </p>
             </div>
 

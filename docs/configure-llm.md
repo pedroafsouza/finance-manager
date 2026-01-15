@@ -18,25 +18,7 @@ You'll need at least one API key:
 
 ## Setup Instructions
 
-### Step 1: Generate Encryption Secret
-
-The encryption secret is used to securely store your API keys in the database.
-
-```bash
-# Generate a secure random secret
-openssl rand -base64 32
-```
-
-This should already be done in your `.env.local` file located at `app/.env.local`. If not, create the file:
-
-```bash
-# app/.env.local
-APP_SECRET=your_generated_secret_here
-```
-
-**Important**: Never commit `.env.local` to version control. It's already in `.gitignore`.
-
-### Step 2: Configure API Keys
+### Configure API Keys
 
 1. Start your application:
    ```bash
@@ -56,7 +38,7 @@ APP_SECRET=your_generated_secret_here
 
 6. Click **Save Settings**
 
-Your API keys are now encrypted and stored securely in the database.
+Your API keys are now stored in a separate database file for easy management.
 
 ## Usage
 
@@ -114,12 +96,12 @@ The AI analyzes your complete financial picture:
 
 ## Security
 
-### Encryption
+### Storage
 
-- API keys are encrypted using **AES-256-GCM** before storage
-- Encryption key is derived from `APP_SECRET` environment variable
+- API keys are stored in plain text in separate database files (`finance-secrets.db` and `demo-secrets.db`)
+- Secrets databases are excluded from version control
 - Keys are never logged or exposed in API responses
-- Database stores only encrypted data
+- You can directly edit the secrets databases if needed
 
 ### Data Privacy
 
@@ -129,14 +111,6 @@ The AI analyzes your complete financial picture:
 - API keys remain on your server (never transmitted to other services)
 
 ## Troubleshooting
-
-### "APP_SECRET environment variable not set"
-
-**Solution**: Create `app/.env.local` with a valid `APP_SECRET`:
-```bash
-cd app
-echo "APP_SECRET=$(openssl rand -base64 32)" > .env.local
-```
 
 ### "LLM not configured. Please add API keys in settings."
 
@@ -192,19 +166,24 @@ Costs depend on:
 
 **Tip**: Monitor your API usage in the provider's dashboard.
 
-## Database Tables
+## Database Structure
 
-The feature adds two new tables to your SQLite database:
+The feature uses separate databases for different purposes:
 
-### `llm_settings`
-Stores encrypted API keys and preferences:
-- `anthropic_api_key_encrypted` - Encrypted Anthropic key
-- `gemini_api_key_encrypted` - Encrypted Gemini key
+### Secrets Databases
+- `finance-secrets.db` - Stores API keys for live mode (in plain text)
+- `demo-secrets.db` - Stores API keys for demo mode (in plain text)
+
+**Table: `llm_settings`**
+- `anthropic_api_key` - Anthropic API key (plain text)
+- `gemini_api_key` - Gemini API key (plain text)
 - `preferred_llm` - User's preferred provider
-- `encryption_iv` - Initialization vector for encryption
 
-### `llm_analysis_reports`
-Stores analysis results:
+### Analysis Databases
+- `finance-analysis.db` - Stores analysis reports for live mode
+- `demo-analysis.db` - Stores analysis reports for demo mode
+
+**Table: `llm_analysis_reports`**
 - `llm_provider` - Which AI was used (claude/gemini)
 - `recommendation` - Buy, sell, or hold
 - `reasoning` - Detailed explanation
@@ -213,26 +192,28 @@ Stores analysis results:
 - `opportunities` - JSON array of opportunities
 - `is_read` - Whether notification was read
 
+**Note**: All secrets and analysis databases are excluded from version control via `.gitignore`.
+
 ## Verification
 
 To verify everything is working:
 
-1. **Check environment**:
+1. **Check database files exist**:
    ```bash
-   cat app/.env.local
-   # Should show APP_SECRET=...
+   ls -la app/data/*-secrets.db app/data/*-analysis.db
+   # Should show: finance-secrets.db, demo-secrets.db, finance-analysis.db, demo-analysis.db
    ```
 
-2. **Check database tables**:
+2. **Check secrets database table**:
    ```bash
-   sqlite3 app/data/finance.db "SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'llm%';"
-   # Should show: llm_settings and llm_analysis_reports
+   sqlite3 app/data/finance-secrets.db "SELECT name FROM sqlite_master WHERE type='table';"
+   # Should show: llm_settings
    ```
 
-3. **Check encrypted keys** (should NOT see plaintext):
+3. **Verify API key is stored** (check without exposing the key):
    ```bash
-   sqlite3 app/data/finance.db "SELECT length(anthropic_api_key_encrypted) FROM llm_settings;"
-   # Should show a number (hex string length), not your actual key
+   sqlite3 app/data/finance-secrets.db "SELECT preferred_llm, anthropic_api_key IS NOT NULL, gemini_api_key IS NOT NULL FROM llm_settings;"
+   # Should show your preferred LLM and which keys are configured (1 = configured, 0 = not configured)
    ```
 
 ## Support
@@ -242,7 +223,7 @@ If you encounter issues not covered in this guide:
 1. Check browser console for error messages (F12 → Console)
 2. Check server logs for API errors
 3. Verify your API keys are valid in the provider's dashboard
-4. Ensure `.env.local` exists and contains `APP_SECRET`
+4. Verify secrets database files exist in `app/data/` directory
 
 ## Future Enhancements
 

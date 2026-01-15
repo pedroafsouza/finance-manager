@@ -48,5 +48,21 @@ next-env.d.ts
 *.db-wal
 !data/demo.db-wal
 
+# analysis databases (not committed)
+data/demo-analysis.db
+data/demo-analysis.db-shm
+data/demo-analysis.db-wal
+data/finance-analysis.db
+data/finance-analysis.db-shm
+data/finance-analysis.db-wal
+
+# secrets databases (not committed)
+data/demo-secrets.db
+data/demo-secrets.db-shm
+data/demo-secrets.db-wal
+data/finance-secrets.db
+data/finance-secrets.db-shm
+data/finance-secrets.db-wal
+
 # Excel temp files
 ~$*.xlsx

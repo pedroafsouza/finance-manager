@@ -78,7 +78,7 @@ export default function Home() {
     chart: {
       type: 'pie',
       backgroundColor: 'transparent',
-      height: 200,
+      height: '100%',
     },
     title: { text: '' },
     tooltip: {
@@ -100,7 +100,7 @@ export default function Home() {
         type: 'pie',
         name: 'Value',
         data: miniChartData,
-        size: '100%',
+        size: '80%',
       },
     ],
     credits: { enabled: false },
@@ -205,7 +205,7 @@ export default function Home() {
   return (
     <div className="min-h-screen p-6">
       <main className="mx-auto max-w-7xl">
-        <div className="mb-8 text-center">
+        <div className="mb-8">
           <h1 className="text-4xl font-bold">
             Portfolio Dashboard
           </h1>
@@ -238,68 +238,71 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        {/* Summary Cards */}
-        <div className="mb-8 grid gap-6 md:grid-cols-3">
-          <Card className="shadow-md">
-            <CardHeader className="pb-2">
-              <CardDescription>Total Portfolio Value</CardDescription>
+        {/* Chart and Summary Cards Side by Side */}
+        <div className="mb-8 grid gap-6 md:grid-cols-2">
+          {/* Left: Holdings Chart */}
+          <Card className="shadow-md flex flex-col">
+            <CardHeader>
+              <CardTitle>Holdings by Ticker</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">
-                {formatCurrencyValue(totalValue)}
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                Cost Basis: {formatCurrencyValue(totalCostBasis)}
-              </p>
+            <CardContent className="flex-1">
+              {typeof window !== 'undefined' && Highcharts && (
+                <HighchartsReact highcharts={Highcharts} options={miniPieChart} />
+              )}
             </CardContent>
           </Card>
 
-          <Card className="shadow-md">
-            <CardHeader className="pb-2">
-              <CardDescription>Total Gain/Loss</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div
-                className={`text-3xl font-bold ${
-                  totalGainLoss >= 0
-                    ? 'text-green-600 dark:text-green-400'
-                    : 'text-red-600 dark:text-red-400'
-                }`}
-              >
-                {formatCurrencyValue(totalGainLoss)}
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                {((totalGainLoss / totalCostBasis) * 100).toFixed(2)}% return
-              </p>
-            </CardContent>
-          </Card>
+          {/* Right: Summary Cards Stacked */}
+          <div className="flex flex-col gap-6">
+            <Card className="shadow-md">
+              <CardHeader className="pb-2">
+                <CardDescription>Total Portfolio Value</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">
+                  {formatCurrencyValue(totalValue)}
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Cost Basis: {formatCurrencyValue(totalCostBasis)}
+                </p>
+              </CardContent>
+            </Card>
 
-          <Card className="shadow-md">
-            <CardHeader className="pb-2">
-              <CardDescription>Total Grants</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">
-                {grants.length}
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                Across {Object.keys(holdingsByTicker).length} ticker{Object.keys(holdingsByTicker).length !== 1 ? 's' : ''}
-              </p>
-            </CardContent>
-          </Card>
+            <Card className="shadow-md">
+              <CardHeader className="pb-2">
+                <CardDescription>Total Gain/Loss</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div
+                  className={`text-3xl font-bold ${
+                    totalGainLoss >= 0
+                      ? 'text-green-600 dark:text-green-400'
+                      : 'text-red-600 dark:text-red-400'
+                  }`}
+                >
+                  {formatCurrencyValue(totalGainLoss)}
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  {((totalGainLoss / totalCostBasis) * 100).toFixed(2)}% return
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-md">
+              <CardHeader className="pb-2">
+                <CardDescription>Total Grants</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">
+                  {grants.length}
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Across {Object.keys(holdingsByTicker).length} ticker{Object.keys(holdingsByTicker).length !== 1 ? 's' : ''}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-
-        {/* Mini Chart */}
-        <Card className="mb-8 shadow-md">
-          <CardHeader>
-            <CardTitle>Holdings by Ticker</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {typeof window !== 'undefined' && Highcharts && (
-              <HighchartsReact highcharts={Highcharts} options={miniPieChart} />
-            )}
-          </CardContent>
-        </Card>
 
         {/* Quick Links */}
         <div className="grid gap-6 md:grid-cols-3">

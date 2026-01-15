@@ -1,22 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb, initDb } from '@/lib/db';
-import { encrypt, decrypt, isValidAnthropicKey, isValidGeminiKey } from '@/lib/encryption';
+import { getSecretsDb, initDemoSecretsDb, initLiveSecretsDb } from '@/lib/db';
+import { isValidAnthropicKey, isValidGeminiKey } from '@/lib/encryption';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-// GET - Fetch current LLM settings (without decrypted keys)
+// GET - Fetch current LLM settings (without showing keys)
 export async function GET() {
   try {
-    await initDb();
-    const db = await getDb();
+    initDemoSecretsDb();
+    initLiveSecretsDb();
+    const db = await getSecretsDb();
 
     const settings = db.prepare(`
       SELECT
         id,
         preferred_llm,
-        anthropic_api_key_encrypted IS NOT NULL as has_anthropic_key,
-        gemini_api_key_encrypted IS NOT NULL as has_gemini_key,
+        anthropic_api_key IS NOT NULL AND anthropic_api_key != '' as has_anthropic_key,
+        gemini_api_key IS NOT NULL AND gemini_api_key != '' as has_gemini_key,
         last_updated
       FROM llm_settings
       ORDER BY id DESC
@@ -42,10 +43,11 @@ export async function GET() {
   }
 }
 
-// POST - Save LLM settings with encrypted API keys
+// POST - Save LLM settings in plain text
 export async function POST(request: NextRequest) {
   try {
-    await initDb();
+    initDemoSecretsDb();
+    initLiveSecretsDb();
     const body = await request.json();
 
     const { anthropicApiKey, geminiApiKey, preferredLlm = 'claude' } = body;
@@ -73,29 +75,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Encrypt keys
-    let anthropicEncrypted = null;
-    let geminiEncrypted = null;
-    let iv = null;
-    let tag = null;
-
-    if (anthropicApiKey) {
-      const encrypted = encrypt(anthropicApiKey);
-      anthropicEncrypted = encrypted.encrypted;
-      iv = encrypted.iv;
-      tag = encrypted.tag;
-    }
-
-    if (geminiApiKey) {
-      const encrypted = encrypt(geminiApiKey);
-      geminiEncrypted = encrypted.encrypted;
-      if (!iv) {
-        iv = encrypted.iv;
-        tag = encrypted.tag;
-      }
-    }
-
-    const db = await getDb();
+    const db = await getSecretsDb();
 
     // Check if settings exist
     const existing = db.prepare('SELECT id FROM llm_settings LIMIT 1').get() as any;
@@ -104,37 +84,33 @@ export async function POST(request: NextRequest) {
       // Update existing
       const updateStmt = db.prepare(`
         UPDATE llm_settings
-        SET anthropic_api_key_encrypted = ?,
-            gemini_api_key_encrypted = ?,
+        SET anthropic_api_key = ?,
+            gemini_api_key = ?,
             preferred_llm = ?,
-            encryption_iv = ?,
             last_updated = CURRENT_TIMESTAMP
         WHERE id = ?
       `);
 
       updateStmt.run(
-        anthropicEncrypted,
-        geminiEncrypted,
+        anthropicApiKey || null,
+        geminiApiKey || null,
         preferredLlm,
-        JSON.stringify({ iv, tag }),
         existing.id
       );
     } else {
       // Insert new
       const insertStmt = db.prepare(`
         INSERT INTO llm_settings (
-          anthropic_api_key_encrypted,
-          gemini_api_key_encrypted,
-          preferred_llm,
-          encryption_iv
-        ) VALUES (?, ?, ?, ?)
+          anthropic_api_key,
+          gemini_api_key,
+          preferred_llm
+        ) VALUES (?, ?, ?)
       `);
 
       insertStmt.run(
-        anthropicEncrypted,
-        geminiEncrypted,
-        preferredLlm,
-        JSON.stringify({ iv, tag })
+        anthropicApiKey || null,
+        geminiApiKey || null,
+        preferredLlm
       );
     }
 
@@ -156,8 +132,9 @@ export async function POST(request: NextRequest) {
 // DELETE - Remove API keys
 export async function DELETE() {
   try {
-    await initDb();
-    const db = await getDb();
+    initDemoSecretsDb();
+    initLiveSecretsDb();
+    const db = await getSecretsDb();
 
     db.prepare('DELETE FROM llm_settings').run();
     db.close();

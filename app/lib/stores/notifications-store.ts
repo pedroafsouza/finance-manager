@@ -5,13 +5,15 @@ interface Notification {
   id: number;
   llm_provider: string;
   analysis_type: string;
-  recommendation: string;
+  recommendation: string | null;
   reasoning: string;
-  confidence_level: string;
+  confidence_level: string | null;
   risk_factors: string[];
   opportunities: string[];
   is_read: boolean;
   created_at: string;
+  is_error?: boolean;
+  error_type?: string;
 }
 
 interface NotificationsStore {

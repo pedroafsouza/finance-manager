@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb, initDb } from '@/lib/db';
+import { getAnalysisDb, initDb, initDemoAnalysisDb, initLiveAnalysisDb } from '@/lib/db';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -8,7 +8,9 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: NextRequest) {
   try {
     await initDb();
-    const db = await getDb();
+    initDemoAnalysisDb();
+    initLiveAnalysisDb();
+    const db = await getAnalysisDb();
 
     const { searchParams } = new URL(request.url);
     const unreadOnly = searchParams.get('unread') === 'true';
@@ -68,6 +70,8 @@ export async function GET(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     await initDb();
+    initDemoAnalysisDb();
+    initLiveAnalysisDb();
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 
@@ -78,7 +82,7 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    const db = await getDb();
+    const db = await getAnalysisDb();
 
     db.prepare('UPDATE llm_analysis_reports SET is_read = 1 WHERE id = ?').run(id);
 

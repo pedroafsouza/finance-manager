@@ -29,6 +29,48 @@ export const getDb = async () => {
   return db;
 };
 
+// Get analysis database (separate for both demo and live modes)
+export const getAnalysisDb = async () => {
+  // Check if demo mode is enabled via cookie
+  let isDemoMode = false;
+  try {
+    const cookieStore = await cookies();
+    const demoModeCookie = cookieStore.get('demoMode');
+    isDemoMode = demoModeCookie?.value === 'true';
+  } catch (error) {
+    // If cookies() fails (e.g., in non-request context), use default
+    isDemoMode = false;
+  }
+
+  const dbName = isDemoMode ? 'demo-analysis.db' : 'finance-analysis.db';
+  const dbPath = path.join(process.cwd(), 'data', dbName);
+
+  const db = new Database(dbPath);
+  db.pragma('journal_mode = WAL');
+  return db;
+};
+
+// Get secrets database (separate for both demo and live modes)
+export const getSecretsDb = async () => {
+  // Check if demo mode is enabled via cookie
+  let isDemoMode = false;
+  try {
+    const cookieStore = await cookies();
+    const demoModeCookie = cookieStore.get('demoMode');
+    isDemoMode = demoModeCookie?.value === 'true';
+  } catch (error) {
+    // If cookies() fails (e.g., in non-request context), use default
+    isDemoMode = false;
+  }
+
+  const dbName = isDemoMode ? 'demo-secrets.db' : 'finance-secrets.db';
+  const dbPath = path.join(process.cwd(), 'data', dbName);
+
+  const db = new Database(dbPath);
+  db.pragma('journal_mode = WAL');
+  return db;
+};
+
 export const initDb = async () => {
   const db = await getDb();
 
@@ -115,18 +157,30 @@ export const initDb = async () => {
     )
   `);
 
-  // Create LLM settings table - stores encrypted API keys
+
+  // Create indexes
   db.exec(`
-    CREATE TABLE IF NOT EXISTS llm_settings (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      anthropic_api_key_encrypted TEXT,
-      gemini_api_key_encrypted TEXT,
-      preferred_llm TEXT DEFAULT 'claude',
-      encryption_iv TEXT,
-      last_updated TEXT DEFAULT CURRENT_TIMESTAMP,
-      created_at TEXT DEFAULT CURRENT_TIMESTAMP
-    )
+    CREATE INDEX IF NOT EXISTS idx_transactions_date
+    ON transactions(entry_date, ticker);
+
+    CREATE INDEX IF NOT EXISTS idx_transactions_type
+    ON transactions(activity_type);
+
+    CREATE INDEX IF NOT EXISTS idx_holdings_ticker
+    ON holdings(ticker, acquisition_date);
+
+    CREATE INDEX IF NOT EXISTS idx_grants_ticker_date
+    ON stock_grants(ticker, acquisition_date);
   `);
+
+  db.close();
+};
+
+// Initialize analysis databases (both demo and live)
+export const initAnalysisDb = (dbName: 'demo-analysis.db' | 'finance-analysis.db') => {
+  const dbPath = path.join(process.cwd(), 'data', dbName);
+  const db = new Database(dbPath);
+  db.pragma('journal_mode = WAL');
 
   // Create LLM analysis reports table
   db.exec(`
@@ -143,27 +197,58 @@ export const initDb = async () => {
       opportunities TEXT,
       data_snapshot TEXT,
       is_read BOOLEAN DEFAULT 0,
-      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      is_error BOOLEAN DEFAULT 0,
+      error_type TEXT
     )
   `);
 
-  // Create indexes
+  // Add new columns if they don't exist (for backwards compatibility)
+  const tableInfo = db.pragma(`table_info(llm_analysis_reports)`);
+  const columnNames = tableInfo.map((col: any) => col.name);
+
+  if (!columnNames.includes('is_error')) {
+    db.exec(`ALTER TABLE llm_analysis_reports ADD COLUMN is_error BOOLEAN DEFAULT 0`);
+  }
+
+  if (!columnNames.includes('error_type')) {
+    db.exec(`ALTER TABLE llm_analysis_reports ADD COLUMN error_type TEXT`);
+  }
+
+  // Create index
   db.exec(`
-    CREATE INDEX IF NOT EXISTS idx_transactions_date
-    ON transactions(entry_date, ticker);
-
-    CREATE INDEX IF NOT EXISTS idx_transactions_type
-    ON transactions(activity_type);
-
-    CREATE INDEX IF NOT EXISTS idx_holdings_ticker
-    ON holdings(ticker, acquisition_date);
-
-    CREATE INDEX IF NOT EXISTS idx_grants_ticker_date
-    ON stock_grants(ticker, acquisition_date);
-
     CREATE INDEX IF NOT EXISTS idx_llm_reports_created
     ON llm_analysis_reports(created_at DESC, is_read);
   `);
 
   db.close();
 };
+
+// Convenience functions
+export const initDemoAnalysisDb = () => initAnalysisDb('demo-analysis.db');
+export const initLiveAnalysisDb = () => initAnalysisDb('finance-analysis.db');
+
+// Initialize secrets databases (both demo and live)
+export const initSecretsDb = (dbName: 'demo-secrets.db' | 'finance-secrets.db') => {
+  const dbPath = path.join(process.cwd(), 'data', dbName);
+  const db = new Database(dbPath);
+  db.pragma('journal_mode = WAL');
+
+  // Create LLM settings table - stores API keys in plain text
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS llm_settings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      anthropic_api_key TEXT,
+      gemini_api_key TEXT,
+      preferred_llm TEXT DEFAULT 'claude',
+      last_updated TEXT DEFAULT CURRENT_TIMESTAMP,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  db.close();
+};
+
+// Convenience functions
+export const initDemoSecretsDb = () => initSecretsDb('demo-secrets.db');
+export const initLiveSecretsDb = () => initSecretsDb('finance-secrets.db');
