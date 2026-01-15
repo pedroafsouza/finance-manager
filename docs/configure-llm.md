@@ -200,19 +200,19 @@ To verify everything is working:
 
 1. **Check database files exist**:
    ```bash
-   ls -la app/data/*-secrets.db app/data/*-analysis.db
+   ls -la src/data/*-secrets.db src/data/*-analysis.db
    # Should show: finance-secrets.db, demo-secrets.db, finance-analysis.db, demo-analysis.db
    ```
 
 2. **Check secrets database table**:
    ```bash
-   sqlite3 app/data/finance-secrets.db "SELECT name FROM sqlite_master WHERE type='table';"
+   sqlite3 src/data/finance-secrets.db "SELECT name FROM sqlite_master WHERE type='table';"
    # Should show: llm_settings
    ```
 
 3. **Verify API key is stored** (check without exposing the key):
    ```bash
-   sqlite3 app/data/finance-secrets.db "SELECT preferred_llm, anthropic_api_key IS NOT NULL, gemini_api_key IS NOT NULL FROM llm_settings;"
+   sqlite3 src/data/finance-secrets.db "SELECT preferred_llm, anthropic_api_key IS NOT NULL, gemini_api_key IS NOT NULL FROM llm_settings;"
    # Should show your preferred LLM and which keys are configured (1 = configured, 0 = not configured)
    ```
 
@@ -223,7 +223,7 @@ If you encounter issues not covered in this guide:
 1. Check browser console for error messages (F12 → Console)
 2. Check server logs for API errors
 3. Verify your API keys are valid in the provider's dashboard
-4. Verify secrets database files exist in `app/data/` directory
+4. Verify secrets database files exist in `src/data/` directory
 
 ## Future Enhancements
 

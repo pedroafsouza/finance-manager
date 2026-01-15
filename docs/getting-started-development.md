@@ -70,8 +70,8 @@ bun run lint
 
 ```
 finance-manager/
-├── app/                    # Next.js application
-│   ├── app/                # Next.js app directory
+├── src/                    # Next.js application
+│   ├── src/                # Next.js app directory
 │   │   ├── page.tsx       # Home page (dashboard)
 │   │   ├── layout.tsx     # Root layout with providers
 │   │   ├── globals.css    # Global styles
@@ -138,10 +138,10 @@ finance-manager/
 - `lib/stores/*` - Zustand stores for global state (theme, currency, demo mode, notifications)
 
 **API Routes:**
-- `app/api/grants/route.ts` - Fetch stock grants
-- `app/api/transactions/route.ts` - Fetch transactions
-- `app/api/import/route.ts` - Upload and parse Excel files
-- `app/api/llm/*` - LLM integration endpoints
+- `src/api/grants/route.ts` - Fetch stock grants
+- `src/api/transactions/route.ts` - Fetch transactions
+- `src/api/import/route.ts` - Upload and parse Excel files
+- `src/api/llm/*` - LLM integration endpoints
 
 ## Development Workflow
 
@@ -153,9 +153,9 @@ finance-manager/
    ```
 
 2. **Make Your Changes**
-   - Edit files in `app/app/` for frontend
-   - Edit files in `app/lib/` for utilities
-   - Edit files in `app/app/api/` for backend
+   - Edit files in `src/src/` for frontend
+   - Edit files in `src/lib/` for utilities
+   - Edit files in `src/src/api/` for backend
 
 3. **Test Your Changes**
    ```bash
@@ -360,7 +360,7 @@ The application uses **SQLite** with the following tables:
 - Database files are automatically excluded from git (`.gitignore`)
 - Your personal financial data stays private
 - Data is stored locally only (not sent to any server except chosen LLM)
-- You can anonymize test data using `bun app/scripts/anonymize-excel.ts`
+- You can anonymize test data using `bun src/scripts/anonymize-excel.ts`
 
 ## Troubleshooting Development Issues
 

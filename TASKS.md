@@ -35,7 +35,7 @@ This file tracks the tasks and features for the Danish Tax & RSU Manager applica
    - DELETE `/api/grants` - Clear all imported data
 
 6. ✅ Build file upload UI
-   - Created import page at `app/imports/page.tsx`
+   - Created import page at `src/imports/page.tsx`
    - File upload form with drag-and-drop support
    - Real-time feedback messages
    - Clear data functionality
@@ -66,11 +66,11 @@ The Excel import functionality is **fully functional** and tested. Users can:
 ### New Files:
 - `lib/db.ts` - Database utilities and schema
 - `lib/excel-parser.ts` - Excel file parsing logic
-- `app/api/import/route.ts` - Import API endpoint
-- `app/api/grants/route.ts` - Grants API endpoint
-- `app/api/clear-all/route.ts` - Clear data API endpoint (NEW)
-- `app/imports/page.tsx` - Import page UI
-- `app/settings/page.tsx` - Settings and data management page (NEW)
+- `src/api/import/route.ts` - Import API endpoint
+- `src/api/grants/route.ts` - Grants API endpoint
+- `src/api/clear-all/route.ts` - Clear data API endpoint (NEW)
+- `src/imports/page.tsx` - Import page UI
+- `src/settings/page.tsx` - Settings and data management page (NEW)
 - `scripts/analyze-excel.ts` - Excel analysis tool
 - `scripts/test-import.ts` - Import testing script
 - `scripts/test-clear-data.ts` - Clear data testing script (NEW)
@@ -78,8 +78,8 @@ The Excel import functionality is **fully functional** and tested. Users can:
 - `scripts/verify-anonymized.ts` - Verification script (NEW)
 
 ### Modified Files:
-- `app/page.tsx` - Added navigation links (Imports, Settings)
-- `app/imports/page.tsx` - Added navigation bar with Home and Settings links
+- `src/page.tsx` - Added navigation links (Imports, Settings)
+- `src/imports/page.tsx` - Added navigation bar with Home and Settings links
 - `package.json` - Added dependencies (xlsx, better-sqlite3, testing libs)
 - `.gitignore` - Added database and temp file exclusions
 

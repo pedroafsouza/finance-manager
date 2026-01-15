@@ -55,7 +55,7 @@ Ran 16 tests across 1 file. [137.00ms]
 ## How to Run Tests
 
 ```bash
-cd app
+cd src
 
 # Run all Excel parser tests (recommended)
 bun run test:parser
@@ -70,15 +70,15 @@ bun run test:ui
 ## Files Created
 
 ### Test Files:
-- `app/__tests__/excel-parser.test.ts` - 16 comprehensive parser tests ✅
-- `app/__tests__/db.test.ts` - 18 database operation tests 📝
-- `app/__tests__/api.test.ts` - API endpoint tests 📝
-- `app/__tests__/integration.test.ts` - Integration tests 📝
-- `app/__tests__/README.md` - Detailed testing documentation
+- `src/__tests__/excel-parser.test.ts` - 16 comprehensive parser tests ✅
+- `src/__tests__/db.test.ts` - 18 database operation tests 📝
+- `src/__tests__/api.test.ts` - API endpoint tests 📝
+- `src/__tests__/integration.test.ts` - Integration tests 📝
+- `src/__tests__/README.md` - Detailed testing documentation
 
 ### Configuration:
-- `app/vitest.config.ts` - Vitest configuration
-- `app/.github/workflows/test.yml` - CI/CD workflow for GitHub Actions
+- `src/vitest.config.ts` - Vitest configuration
+- `src/.github/workflows/test.yml` - CI/CD workflow for GitHub Actions
 
 ### Package Updates:
 - Added test scripts to `package.json`:

@@ -45,14 +45,14 @@ Gain/Loss: $839.26
 ## Scripts Created
 
 ### Anonymization Script
-- **Location:** `app/scripts/anonymize-excel.ts`
+- **Location:** `src/scripts/anonymize-excel.ts`
 - **Function:** Divides all numerical values by 10
-- **Usage:** `bun app/scripts/anonymize-excel.ts`
+- **Usage:** `bun src/scripts/anonymize-excel.ts`
 
 ### Verification Script
-- **Location:** `app/scripts/verify-anonymized.ts`
+- **Location:** `src/scripts/verify-anonymized.ts`
 - **Function:** Verifies anonymization was successful
-- **Usage:** `bun app/scripts/verify-anonymized.ts`
+- **Usage:** `bun src/scripts/verify-anonymized.ts`
 
 ## Running the Scripts
 
@@ -60,10 +60,10 @@ Gain/Loss: $839.26
 # From project root:
 
 # Anonymize data (already done)
-bun app/scripts/anonymize-excel.ts
+bun src/scripts/anonymize-excel.ts
 
 # Verify anonymization
-bun app/scripts/verify-anonymized.ts
+bun src/scripts/verify-anonymized.ts
 ```
 
 ## Test Results
@@ -95,7 +95,7 @@ The database file (`finance.db`) is already in `.gitignore`, so the real data wo
 
 ## Re-anonymization
 
-To re-anonymize with different values, modify the `divisor` variable in `app/scripts/anonymize-excel.ts`:
+To re-anonymize with different values, modify the `divisor` variable in `src/scripts/anonymize-excel.ts`:
 
 ```typescript
 const divisor = 10; // Change to 3, 5, 10, etc.
@@ -103,7 +103,7 @@ const divisor = 10; // Change to 3, 5, 10, etc.
 
 Then run:
 ```bash
-bun app/scripts/anonymize-excel.ts
+bun src/scripts/anonymize-excel.ts
 ```
 
 ## Notes

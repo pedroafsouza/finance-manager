@@ -82,11 +82,11 @@ curl -X DELETE http://localhost:3000/api/clear-all
 ## Files Created/Modified
 
 ### New Files:
-1. **`app/api/clear-all/route.ts`** - API endpoints for clearing data
+1. **`src/api/clear-all/route.ts`** - API endpoints for clearing data
    - POST: Clear records
    - DELETE: Delete database files
 
-2. **`app/settings/page.tsx`** - Settings UI page
+2. **`src/settings/page.tsx`** - Settings UI page
    - Data management section
    - Cache management section
    - Database information
@@ -94,8 +94,8 @@ curl -X DELETE http://localhost:3000/api/clear-all
 3. **`scripts/test-clear-data.ts`** - Test script for clear functionality
 
 ### Modified Files:
-1. **`app/page.tsx`** - Added Settings link
-2. **`app/imports/page.tsx`** - Added navigation with Settings link
+1. **`src/page.tsx`** - Added Settings link
+2. **`src/imports/page.tsx`** - Added navigation with Settings link
 
 ## Usage
 
@@ -224,6 +224,6 @@ Make sure you type exactly "DELETE" (all caps) for database deletion.
 ## Documentation
 
 For more information:
-- **API Documentation**: See `app/api/clear-all/route.ts`
-- **UI Documentation**: See `app/settings/page.tsx`
+- **API Documentation**: See `src/api/clear-all/route.ts`
+- **UI Documentation**: See `src/settings/page.tsx`
 - **Test Script**: See `scripts/test-clear-data.ts`

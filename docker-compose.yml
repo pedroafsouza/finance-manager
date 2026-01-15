@@ -1,7 +1,7 @@
 services:
   skatly:
     build:
-      context: ./app
+      context: ./src
       dockerfile: Dockerfile
     container_name: skatly-app
     ports:

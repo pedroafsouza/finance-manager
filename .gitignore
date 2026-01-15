@@ -2,10 +2,10 @@
 /data/
 
 # App data folder - ignore everything except demo.db and its auxiliary files
-app/data/*
-!app/data/demo.db
-!app/data/demo.db-shm
-!app/data/demo.db-wal
+src/data/*
+!src/data/demo.db
+!src/data/demo.db-shm
+!src/data/demo.db-wal
 
 # Database files everywhere else
 *.db
@@ -13,9 +13,9 @@ app/data/*
 *.db-wal
 
 # But allow demo.db specifically
-!app/data/demo.db
-!app/data/demo.db-shm
-!app/data/demo.db-wal
+!src/data/demo.db
+!src/data/demo.db-shm
+!src/data/demo.db-wal
 
 # Excel temp files
 ~$*.xlsx
