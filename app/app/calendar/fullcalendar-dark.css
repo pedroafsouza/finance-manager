@@ -1,0 +1,114 @@
+/* FullCalendar Light Mode (Default) */
+.fc {
+  --fc-border-color: #e5e7eb;
+  --fc-button-bg-color: #3b82f6;
+  --fc-button-border-color: #3b82f6;
+  --fc-button-hover-bg-color: #2563eb;
+  --fc-button-hover-border-color: #2563eb;
+  --fc-button-active-bg-color: #1d4ed8;
+  --fc-button-active-border-color: #1d4ed8;
+  --fc-today-bg-color: #dbeafe;
+  --fc-page-bg-color: #ffffff;
+  --fc-neutral-bg-color: #f9fafb;
+  --fc-neutral-text-color: #000000;
+}
+
+.fc .fc-button-primary {
+  color: #ffffff;
+}
+
+.fc .fc-daygrid-day-number {
+  color: #374151;
+}
+
+.fc .fc-col-header-cell-cushion {
+  color: #374151;
+}
+
+.fc .fc-daygrid-day-top {
+  color: #374151;
+}
+
+/* FullCalendar Dark Mode */
+:root.dark .fc {
+  --fc-border-color: #374151;
+  --fc-button-bg-color: #3b82f6;
+  --fc-button-border-color: #3b82f6;
+  --fc-button-hover-bg-color: #2563eb;
+  --fc-button-hover-border-color: #2563eb;
+  --fc-button-active-bg-color: #1d4ed8;
+  --fc-button-active-border-color: #1d4ed8;
+  --fc-today-bg-color: #1e3a8a;
+  --fc-page-bg-color: #1f2937;
+  --fc-neutral-bg-color: #111827;
+  --fc-neutral-text-color: #f3f4f6;
+}
+
+:root.dark .fc-theme-standard td,
+:root.dark .fc-theme-standard th {
+  border-color: #374151;
+}
+
+:root.dark .fc .fc-col-header-cell {
+  background-color: #1f2937;
+  color: #f3f4f6;
+}
+
+:root.dark .fc .fc-daygrid-day-number {
+  color: #d1d5db;
+}
+
+:root.dark .fc .fc-col-header-cell-cushion {
+  color: #f3f4f6;
+}
+
+:root.dark .fc .fc-daygrid-day-top {
+  color: #d1d5db;
+}
+
+:root.dark .fc .fc-button-primary {
+  color: #ffffff;
+}
+
+:root.dark .fc .fc-daygrid-day {
+  background-color: #1f2937;
+}
+
+:root.dark .fc .fc-daygrid-day:hover {
+  background-color: #374151;
+}
+
+/* Event styling improvements */
+.fc .fc-event {
+  cursor: pointer;
+  border-width: 2px;
+}
+
+.fc .fc-event:hover {
+  opacity: 0.9;
+}
+
+/* Popover styling for dark mode */
+:root.dark .fc .fc-popover {
+  background-color: #1f2937;
+  border-color: #374151;
+}
+
+:root.dark .fc .fc-popover-header {
+  background-color: #111827;
+  color: #f3f4f6;
+}
+
+:root.dark .fc .fc-popover-body {
+  color: #f3f4f6;
+}
+
+/* Month header styling */
+.fc .fc-toolbar-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+:root.dark .fc .fc-toolbar-title {
+  color: #f3f4f6;
+}

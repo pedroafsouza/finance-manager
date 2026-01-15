@@ -1,0 +1,54 @@
+import { NextResponse } from 'next/server';
+import { getDb, initDb } from '@/lib/db';
+
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
+export async function GET() {
+  try {
+    // Initialize database if not exists
+    initDb();
+
+    const db = getDb();
+
+    const grants = db.prepare(`
+      SELECT * FROM stock_grants
+      ORDER BY acquisition_date DESC, ticker
+    `).all();
+
+    db.close();
+
+    return NextResponse.json({
+      success: true,
+      data: grants,
+      count: grants.length,
+    });
+  } catch (error) {
+    console.error('Fetch error:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch grants', details: (error as Error).message },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE() {
+  try {
+    initDb();
+    const db = getDb();
+
+    db.prepare('DELETE FROM stock_grants').run();
+    db.close();
+
+    return NextResponse.json({
+      success: true,
+      message: 'All grants deleted',
+    });
+  } catch (error) {
+    console.error('Delete error:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete grants', details: (error as Error).message },
+      { status: 500 }
+    );
+  }
+}
