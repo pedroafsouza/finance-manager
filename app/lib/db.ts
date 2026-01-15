@@ -115,6 +115,38 @@ export const initDb = async () => {
     )
   `);
 
+  // Create LLM settings table - stores encrypted API keys
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS llm_settings (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      anthropic_api_key_encrypted TEXT,
+      gemini_api_key_encrypted TEXT,
+      preferred_llm TEXT DEFAULT 'claude',
+      encryption_iv TEXT,
+      last_updated TEXT DEFAULT CURRENT_TIMESTAMP,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  // Create LLM analysis reports table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS llm_analysis_reports (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      llm_provider TEXT NOT NULL,
+      analysis_type TEXT DEFAULT 'portfolio',
+      prompt_tokens INTEGER,
+      completion_tokens INTEGER,
+      recommendation TEXT,
+      reasoning TEXT NOT NULL,
+      confidence_level TEXT,
+      risk_factors TEXT,
+      opportunities TEXT,
+      data_snapshot TEXT,
+      is_read BOOLEAN DEFAULT 0,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
   // Create indexes
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_transactions_date
@@ -128,6 +160,9 @@ export const initDb = async () => {
 
     CREATE INDEX IF NOT EXISTS idx_grants_ticker_date
     ON stock_grants(ticker, acquisition_date);
+
+    CREATE INDEX IF NOT EXISTS idx_llm_reports_created
+    ON llm_analysis_reports(created_at DESC, is_read);
   `);
 
   db.close();

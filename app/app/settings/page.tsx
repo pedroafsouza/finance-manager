@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import LLMSettingsForm from './components/LLMSettingsForm';
 
 export default function SettingsPage() {
   const [message, setMessage] = useState('');
@@ -104,6 +105,18 @@ export default function SettingsPage() {
             {message}
           </div>
         )}
+
+        {/* LLM Integration Section */}
+        <div className="mb-6 rounded-2xl bg-white p-6 shadow-lg dark:bg-gray-800">
+          <h2 className="mb-4 text-2xl font-semibold text-gray-900 dark:text-white">
+            AI Analysis Settings
+          </h2>
+          <p className="mb-6 text-sm text-gray-600 dark:text-gray-400">
+            Configure Claude or Gemini AI to provide portfolio insights and recommendations.
+          </p>
+
+          <LLMSettingsForm />
+        </div>
 
         {/* Data Management Section */}
         <div className="mb-6 rounded-2xl bg-white p-6 shadow-lg dark:bg-gray-800">

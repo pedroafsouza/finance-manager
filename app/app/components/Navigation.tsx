@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import NotificationBell from './NotificationBell';
 import { useDemoModeStore } from '@/lib/stores/demo-mode-store';
 import { useThemeStore } from '@/lib/stores/theme-store';
 import { useSidebarStore } from '@/lib/stores/sidebar-store';
@@ -63,8 +64,16 @@ export default function Navigation() {
   return (
     <>
       {/* Top Navigation Bar */}
-      <nav className="fixed left-0 right-0 top-0 z-50 border-b border-blue-700 bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-800 dark:to-indigo-800 dark:border-blue-900 text-white shadow-lg">
+      <nav
+        style={{
+          background: 'linear-gradient(to right, rgb(37, 99, 235), rgb(79, 70, 229))',
+          backgroundColor: 'rgb(37, 99, 235)',
+          color: 'white'
+        }}
+        className="fixed left-0 right-0 top-0 z-50 border-b border-blue-700 dark:border-blue-900 shadow-lg"
+      >
         <div className="px-4">
+
           <div className="flex h-16 items-center justify-between">
             {/* Left: Burger Menu & Logo */}
             <div className="flex items-center gap-3">
@@ -147,6 +156,9 @@ export default function Navigation() {
               </Select>
 
               {/* Dark Mode Toggle */}
+              {/* Notification Bell */}
+              <NotificationBell />
+
               <Button
                 variant="ghost"
                 size="icon"

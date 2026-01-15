@@ -6,13 +6,14 @@ import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import type { Options } from 'highcharts';
 import WelcomeDialog from './components/WelcomeDialog';
+import AnalyzeButton from './components/AnalyzeButton';
 import { useDemoModeStore } from '@/lib/stores/demo-mode-store';
 import { useCurrencyStore } from '@/lib/stores/currency-store';
 import { formatCurrency } from '@/lib/currency';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Upload, Calendar as CalendarIcon, TrendingUp, Package } from 'lucide-react';
+import { Eye, Upload, Calendar as CalendarIcon, TrendingUp, Package, Sparkles } from 'lucide-react';
 
 interface StockGrant {
   id: number;
@@ -218,6 +219,24 @@ export default function Home() {
             </Badge>
           )}
         </div>
+
+        {/* AI Portfolio Analysis - Highlighted Section */}
+        <Card className="mb-8 border-2 border-purple-200 bg-gradient-to-r from-purple-50 to-blue-50 shadow-lg dark:border-purple-800 dark:from-purple-950/30 dark:to-blue-950/30">
+          <CardContent className="flex flex-col items-center justify-center gap-4 p-6 sm:flex-row sm:justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900">
+                <Sparkles className="h-6 w-6 text-purple-600 dark:text-purple-300" />
+              </div>
+              <div className="text-center sm:text-left">
+                <h3 className="text-lg font-semibold">AI Portfolio Analysis</h3>
+                <p className="text-sm text-muted-foreground">
+                  Get AI-powered buy/sell/hold recommendations based on your portfolio
+                </p>
+              </div>
+            </div>
+            <AnalyzeButton />
+          </CardContent>
+        </Card>
 
         {/* Summary Cards */}
         <div className="mb-8 grid gap-6 md:grid-cols-3">
