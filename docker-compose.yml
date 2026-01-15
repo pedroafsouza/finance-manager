@@ -1,0 +1,32 @@
+services:
+  skatly:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: skatly-app
+    ports:
+      - "3000:3000"
+    volumes:
+      # Option 1: Bind mount (default) - Data stored in ./data directory
+      # Easy to access and backup files directly on your host machine
+      - ./data:/app/data
+
+      # Option 2: Named volume (alternative) - Uncomment to use Docker-managed volume
+      # Better for production, data managed by Docker
+      # To use: Comment line 11 above and uncomment the line below
+      # - skatly-data:/app/data
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "bun", "run", "-e", "fetch('http://localhost:3000').then(r => r.ok ? process.exit(0) : process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+# Uncomment this section if using named volume (Option 2 above)
+# volumes:
+#   skatly-data:
+#     driver: local

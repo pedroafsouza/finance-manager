@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useCurrencyStore } from '@/lib/stores/currency-store';
+import { formatCurrency } from '@/lib/currency';
 
 interface StockGrant {
   id: number;
@@ -23,6 +25,7 @@ export default function ImportsPage() {
   const [message, setMessage] = useState('');
   const [grants, setGrants] = useState<StockGrant[]>([]);
   const [loading, setLoading] = useState(true);
+  const { currency, exchangeRate } = useCurrencyStore();
 
   const fetchGrants = async () => {
     try {
@@ -113,11 +116,8 @@ export default function ImportsPage() {
     }
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(value);
+  const formatCurrencyValue = (value: number) => {
+    return formatCurrency(value, currency, exchangeRate);
   };
 
   const formatDate = (dateString: string) => {
@@ -252,13 +252,13 @@ export default function ImportsPage() {
                       </td>
                       <td className="px-6 py-4">{grant.total_shares.toFixed(3)}</td>
                       <td className="px-6 py-4">
-                        {formatCurrency(grant.adjusted_cost_basis)}
+                        {formatCurrencyValue(grant.adjusted_cost_basis)}
                       </td>
                       <td className="px-6 py-4">
-                        {formatCurrency(grant.current_price_per_share)}
+                        {formatCurrencyValue(grant.current_price_per_share)}
                       </td>
                       <td className="px-6 py-4">
-                        {formatCurrency(grant.current_value)}
+                        {formatCurrencyValue(grant.current_value)}
                       </td>
                       <td
                         className={`px-6 py-4 font-medium ${
@@ -267,7 +267,7 @@ export default function ImportsPage() {
                             : 'text-red-600 dark:text-red-400'
                         }`}
                       >
-                        {formatCurrency(grant.adjusted_gain_loss)}
+                        {formatCurrencyValue(grant.adjusted_gain_loss)}
                       </td>
                     </tr>
                   ))}

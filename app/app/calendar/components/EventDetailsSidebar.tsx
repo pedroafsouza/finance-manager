@@ -2,6 +2,8 @@
 
 import { CalendarEvent } from '../types';
 import { getActivityColor } from '../utils/activityColors';
+import { useCurrencyStore } from '@/lib/stores/currency-store';
+import { formatCurrency } from '@/lib/currency';
 
 interface EventDetailsSidebarProps {
   event: CalendarEvent | null;
@@ -10,6 +12,8 @@ interface EventDetailsSidebarProps {
 }
 
 export default function EventDetailsSidebar({ event, isOpen, onClose }: EventDetailsSidebarProps) {
+  const { currency, exchangeRate } = useCurrencyStore();
+
   if (!event) return null;
 
   const formatDate = (dateString: string) => {
@@ -20,11 +24,8 @@ export default function EventDetailsSidebar({ event, isOpen, onClose }: EventDet
     });
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(value);
+  const formatCurrencyValue = (value: number) => {
+    return formatCurrency(value, currency, exchangeRate);
   };
 
   return (
@@ -71,7 +72,7 @@ export default function EventDetailsSidebar({ event, isOpen, onClose }: EventDet
             <div className="bg-card rounded-lg p-4 border border-border">
               <div className="text-sm text-muted-foreground">Total Value</div>
               <div className="text-xl font-bold text-foreground mt-1">
-                {formatCurrency(event.extendedProps.totalValue)}
+                {formatCurrencyValue(event.extendedProps.totalValue)}
               </div>
             </div>
             <div className="bg-card rounded-lg p-4 border border-border">
@@ -136,13 +137,13 @@ export default function EventDetailsSidebar({ event, isOpen, onClose }: EventDet
                             <div>Lot: <span className="font-semibold">{transaction.lot_number}</span></div>
                           )}
                           {transaction.share_price !== undefined && transaction.share_price !== null && (
-                            <div>Price: <span className="font-semibold">{formatCurrency(transaction.share_price)}</span></div>
+                            <div>Price: <span className="font-semibold">{formatCurrencyValue(transaction.share_price)}</span></div>
                           )}
                         </div>
                       </div>
                       <div className="text-right">
                         <div className="text-lg font-bold text-foreground">
-                          {formatCurrency(value)}
+                          {formatCurrencyValue(value)}
                         </div>
                       </div>
                     </div>

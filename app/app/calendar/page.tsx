@@ -5,6 +5,8 @@ import { Transaction, CalendarEvent } from './types';
 import { transformTransactionsToEvents } from './utils/transformTransactions';
 import FullCalendarView from './components/FullCalendarView';
 import EventDetailsSidebar from './components/EventDetailsSidebar';
+import { useCurrencyStore } from '@/lib/stores/currency-store';
+import { formatCurrency } from '@/lib/currency';
 
 export default function CalendarPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -12,6 +14,7 @@ export default function CalendarPage() {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const { currency, exchangeRate } = useCurrencyStore();
 
   useEffect(() => {
     fetchTransactions();
@@ -51,11 +54,8 @@ export default function CalendarPage() {
     setTimeout(() => setSelectedEvent(null), 300);
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(value);
+  const formatCurrencyValue = (value: number) => {
+    return formatCurrency(value, currency, exchangeRate);
   };
 
   // Calculate summary stats
@@ -146,7 +146,7 @@ export default function CalendarPage() {
               Total Value
             </div>
             <div className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">
-              {formatCurrency(totalValue)}
+              {formatCurrencyValue(totalValue)}
             </div>
           </div>
         </div>

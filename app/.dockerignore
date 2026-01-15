@@ -42,9 +42,15 @@ bun-debug.log*
 next-env.d.ts
 
 # Data files (will be mounted as volume)
+# Exclude all database files except demo.db
 data/*.db
 data/*.db-shm
 data/*.db-wal
+
+# But include demo.db in the Docker image
+!data/demo.db
+!data/demo.db-shm
+!data/demo.db-wal
 
 # Git
 .git
@@ -73,3 +79,6 @@ scripts/
 Dockerfile
 .dockerignore
 docker-compose.yml
+
+# But include entrypoint script
+!docker-entrypoint.sh

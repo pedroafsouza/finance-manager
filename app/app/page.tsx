@@ -2,17 +2,17 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
+import Highcharts from 'highcharts';
+import HighchartsReact from 'highcharts-react-official';
 import type { Options } from 'highcharts';
 import WelcomeDialog from './components/WelcomeDialog';
 import { useDemoModeStore } from '@/lib/stores/demo-mode-store';
+import { useCurrencyStore } from '@/lib/stores/currency-store';
+import { formatCurrency } from '@/lib/currency';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Eye, Upload, Calendar as CalendarIcon, TrendingUp, Package } from 'lucide-react';
-
-const Highcharts = dynamic(() => import('highcharts'), { ssr: false });
-const HighchartsReact = dynamic(() => import('highcharts-react-official'), { ssr: false });
 
 interface StockGrant {
   id: number;
@@ -28,6 +28,7 @@ export default function Home() {
   const [grants, setGrants] = useState<StockGrant[]>([]);
   const [loading, setLoading] = useState(true);
   const { isDemoMode, toggleDemoMode } = useDemoModeStore();
+  const { currency, exchangeRate } = useCurrencyStore();
 
   useEffect(() => {
     fetchGrants();
@@ -49,11 +50,8 @@ export default function Home() {
     }
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(value);
+  const formatCurrencyValue = (value: number) => {
+    return formatCurrency(value, currency, exchangeRate);
   };
 
   // Calculate statistics
@@ -84,7 +82,7 @@ export default function Home() {
     title: { text: '' },
     tooltip: {
       pointFormatter: function () {
-        return `<b>$${this.y?.toLocaleString()}</b>`;
+        return `<b>${formatCurrencyValue(this.y || 0)}</b>`;
       },
     },
     plotOptions: {
@@ -229,10 +227,10 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">
-                {formatCurrency(totalValue)}
+                {formatCurrencyValue(totalValue)}
               </div>
               <p className="text-xs text-muted-foreground mt-2">
-                Cost Basis: {formatCurrency(totalCostBasis)}
+                Cost Basis: {formatCurrencyValue(totalCostBasis)}
               </p>
             </CardContent>
           </Card>
@@ -249,7 +247,7 @@ export default function Home() {
                     : 'text-red-600 dark:text-red-400'
                 }`}
               >
-                {formatCurrency(totalGainLoss)}
+                {formatCurrencyValue(totalGainLoss)}
               </div>
               <p className="text-xs text-muted-foreground mt-2">
                 {((totalGainLoss / totalCostBasis) * 100).toFixed(2)}% return

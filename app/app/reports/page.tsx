@@ -3,11 +3,14 @@
 import { useState, useEffect } from 'react';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
+import { useCurrencyStore } from '@/lib/stores/currency-store';
+import { formatCurrency, convertCurrency } from '@/lib/currency';
 
 interface StockGrant {
   id: number;
   ticker: string;
   acquisition_date: string;
+  lot_number?: number;
   capital_gain_impact: string;
   adjusted_gain_loss: number;
   adjusted_cost_basis: number;
@@ -18,6 +21,7 @@ interface StockGrant {
 export default function ReportsPage() {
   const [grants, setGrants] = useState<StockGrant[]>([]);
   const [loading, setLoading] = useState(true);
+  const { currency, exchangeRate } = useCurrencyStore();
 
   useEffect(() => {
     fetchGrants();
@@ -91,7 +95,7 @@ export default function ReportsPage() {
 
   const pieChartData = Object.entries(holdingsByTicker).map(([ticker, data]) => ({
     name: ticker,
-    y: data.value,
+    y: convertCurrency(data.value, 'USD', currency, exchangeRate),
   }));
 
   // Portfolio value over time (line chart)
@@ -101,14 +105,14 @@ export default function ReportsPage() {
       const date = grant.acquisition_date.split('T')[0];
       if (!acc.cumulative) acc.cumulative = 0;
       acc.cumulative += grant.current_value;
-      acc.data.push([new Date(date).getTime(), acc.cumulative]);
+      acc.data.push([new Date(date).getTime(), convertCurrency(acc.cumulative, 'USD', currency, exchangeRate)]);
       return acc;
     }, { data: [] as [number, number][], cumulative: 0 }).data;
 
   // Gain/Loss distribution
   const gainLossData = grants.map((grant) => ({
     x: new Date(grant.acquisition_date).getTime(),
-    y: grant.adjusted_gain_loss,
+    y: convertCurrency(grant.adjusted_gain_loss, 'USD', currency, exchangeRate),
     name: `${grant.ticker} - Lot ${grant.lot_number}`,
     color: grant.adjusted_gain_loss >= 0 ? '#10b981' : '#ef4444',
   }));
@@ -125,7 +129,7 @@ export default function ReportsPage() {
 
   const capitalGainChartData = Object.entries(capitalGainBreakdown).map(([type, value]) => ({
     name: type,
-    y: value,
+    y: convertCurrency(value, 'USD', currency, exchangeRate),
   }));
 
   // Chart configurations
@@ -143,10 +147,10 @@ export default function ReportsPage() {
       title: { text: 'Date' },
     },
     yAxis: {
-      title: { text: 'Portfolio Value (USD)' },
+      title: { text: `Portfolio Value (${currency})` },
       labels: {
         formatter: function () {
-          return '$' + (this.value as number).toLocaleString();
+          return getCurrencySymbol() + (this.value as number).toLocaleString();
         },
       },
     },
@@ -180,7 +184,7 @@ export default function ReportsPage() {
     },
     tooltip: {
       pointFormatter: function () {
-        return `<b>$${this.y?.toLocaleString()}</b> (${this.percentage?.toFixed(1)}%)`;
+        return `<b>${formatCurrencyValue(this.y || 0)}</b> (${this.percentage?.toFixed(1)}%)`;
       },
     },
     plotOptions: {
@@ -217,10 +221,10 @@ export default function ReportsPage() {
       title: { text: 'Acquisition Date' },
     },
     yAxis: {
-      title: { text: 'Gain/Loss (USD)' },
+      title: { text: `Gain/Loss (${currency})` },
       labels: {
         formatter: function () {
-          return '$' + (this.value as number).toLocaleString();
+          return getCurrencySymbol() + (this.value as number).toLocaleString();
         },
       },
       plotLines: [
@@ -256,10 +260,10 @@ export default function ReportsPage() {
       type: 'category',
     },
     yAxis: {
-      title: { text: 'Value (USD)' },
+      title: { text: `Value (${currency})` },
       labels: {
         formatter: function () {
-          return '$' + (this.value as number).toLocaleString();
+          return getCurrencySymbol() + (this.value as number).toLocaleString();
         },
       },
     },
@@ -275,11 +279,12 @@ export default function ReportsPage() {
     legend: { enabled: false },
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(value);
+  const formatCurrencyValue = (value: number) => {
+    return formatCurrency(value, currency, exchangeRate);
+  };
+
+  const getCurrencySymbol = () => {
+    return currency === 'DKK' ? 'kr' : '$';
   };
 
   return (
@@ -301,7 +306,7 @@ export default function ReportsPage() {
               Total Portfolio Value
             </div>
             <div className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
-              {formatCurrency(totalValue)}
+              {formatCurrencyValue(totalValue)}
             </div>
           </div>
 
@@ -310,7 +315,7 @@ export default function ReportsPage() {
               Total Cost Basis
             </div>
             <div className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
-              {formatCurrency(totalCostBasis)}
+              {formatCurrencyValue(totalCostBasis)}
             </div>
           </div>
 
@@ -325,7 +330,7 @@ export default function ReportsPage() {
                   : 'text-red-600 dark:text-red-400'
               }`}
             >
-              {formatCurrency(totalGainLoss)}
+              {formatCurrencyValue(totalGainLoss)}
             </div>
           </div>
 

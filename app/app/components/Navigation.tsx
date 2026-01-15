@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useDemoModeStore } from '@/lib/stores/demo-mode-store';
 import { useThemeStore } from '@/lib/stores/theme-store';
 import { useSidebarStore } from '@/lib/stores/sidebar-store';
+import { useCurrencyStore } from '@/lib/stores/currency-store';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -28,6 +29,7 @@ import {
   User,
   X,
   Calculator,
+  DollarSign,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -36,6 +38,7 @@ export default function Navigation() {
   const { isDemoMode, toggleDemoMode } = useDemoModeStore();
   const { isDarkMode, toggleTheme, setTheme } = useThemeStore();
   const { isOpen: isMenuOpen, toggle: toggleMenu, setOpen: setMenuOpen } = useSidebarStore();
+  const { currency, setCurrency } = useCurrencyStore();
 
   useEffect(() => {
     // Initialize theme on mount
@@ -89,8 +92,32 @@ export default function Navigation() {
               </Link>
             </div>
 
-            {/* Right: Demo Mode & Dark Mode Controls */}
+            {/* Right: Currency, Demo Mode & Dark Mode Controls */}
             <div className="flex items-center gap-2">
+              {/* Currency Select */}
+              <Select
+                value={currency}
+                onValueChange={(value) => setCurrency(value as 'USD' | 'DKK')}
+              >
+                <SelectTrigger className="w-[100px] h-9 bg-white/90 text-gray-900 border-white/20">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="USD">
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4" />
+                      <span>USD</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="DKK">
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4" />
+                      <span>DKK</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+
               {/* Demo Mode Select */}
               <Select
                 value={isDemoMode ? 'demo' : 'live'}
