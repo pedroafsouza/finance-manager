@@ -2,6 +2,31 @@
 
 A Next.js application built with Bun to help manage taxes and RSU (Restricted Stock Unit) stock grants in Denmark, particularly for employees of tech companies.
 
+## Screenshots
+
+<details>
+<summary>Click to view application screenshots</summary>
+
+### Dashboard
+![Dashboard](screenshots/01-home.png)
+
+### Calendar View
+![Calendar](screenshots/02-calendar.png)
+
+### Reports & Analytics
+![Reports](screenshots/03-reports.png)
+
+### Tax Calculator
+![Tax Calculator](screenshots/04-tax-calculator.png)
+
+### Import Data
+![Import Data](screenshots/05-imports.png)
+
+### Settings
+![Settings](screenshots/06-settings.png)
+
+</details>
+
 ## Features
 
 - **RSU Tracking**: Monitor vesting schedules and track your RSU grants
@@ -49,7 +74,7 @@ docker-compose up -d --build
 For development without Docker:
 
 ```bash
-cd app
+cd src
 bun install
 bun dev
 ```
@@ -65,13 +90,14 @@ Detailed guides for development and configuration:
 
 ## Tech Stack
 
-- **Framework**: Next.js 16 with App Router
+- **Framework**: Next.js 16 with App Router (Turbopack)
 - **Runtime**: Bun
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS 4 with shadcn/ui
 - **State**: Zustand
-- **Database**: SQLite (better-sqlite3)
+- **Database**: SQLite (bun:sqlite)
 - **Charts**: Highcharts
+- **AI**: Claude (Anthropic) & Gemini (Google)
 
 ## Danish Tax Context
 
