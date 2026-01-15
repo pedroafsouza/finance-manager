@@ -45,9 +45,9 @@ async function analyzePDF() {
 
   // Try to identify sections
   console.log('\n=== POTENTIAL SECTIONS ===');
-  const lines = text.split('\n').filter(line => line.trim().length > 0);
-  const sections = lines.filter(line => line.toUpperCase() === line && line.length > 10);
-  sections.forEach(section => {
+  const lines = text.split('\n').filter((line: string) => line.trim().length > 0);
+  const sections = lines.filter((line: string) => line.toUpperCase() === line && line.length > 10);
+  sections.forEach((section: string) => {
     console.log(`  - ${section}`);
   });
 }

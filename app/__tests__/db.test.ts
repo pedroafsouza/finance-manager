@@ -30,9 +30,9 @@ describe('Database Operations', () => {
       expect(fs.existsSync(path.join(process.cwd(), 'data', 'finance.db'))).toBe(true);
     });
 
-    test('should create stock_grants table', () => {
+    test('should create stock_grants table', async () => {
       initDb();
-      const db = getDb();
+      const db = await getDb();
 
       // Query to check if table exists
       const result = db.prepare(`
@@ -46,9 +46,9 @@ describe('Database Operations', () => {
       db.close();
     });
 
-    test('should create index on ticker and acquisition_date', () => {
+    test('should create index on ticker and acquisition_date', async () => {
       initDb();
-      const db = getDb();
+      const db = await getDb();
 
       const result = db.prepare(`
         SELECT name FROM sqlite_master
@@ -61,12 +61,12 @@ describe('Database Operations', () => {
       db.close();
     });
 
-    test('should be idempotent (safe to run multiple times)', () => {
+    test('should be idempotent (safe to run multiple times)', async () => {
       initDb();
       initDb();
       initDb();
 
-      const db = getDb();
+      const db = await getDb();
       const result = db.prepare(`
         SELECT COUNT(*) as count FROM sqlite_master
         WHERE type='table' AND name='stock_grants'
@@ -79,9 +79,9 @@ describe('Database Operations', () => {
   });
 
   describe('getDb', () => {
-    test('should return database instance', () => {
+    test('should return database instance', async () => {
       initDb();
-      const db = getDb();
+      const db = await getDb();
 
       expect(db).toBeDefined();
       expect(typeof db.prepare).toBe('function');
@@ -90,9 +90,9 @@ describe('Database Operations', () => {
       db.close();
     });
 
-    test('should enable WAL mode', () => {
+    test('should enable WAL mode', async () => {
       initDb();
-      const db = getDb();
+      const db = await getDb();
 
       const result = db.pragma('journal_mode', { simple: true });
       expect(result).toBe('wal');
@@ -106,8 +106,8 @@ describe('Database Operations', () => {
       initDb();
     });
 
-    test('should have all required columns', () => {
-      const db = getDb();
+    test('should have all required columns', async () => {
+      const db = await getDb();
 
       const columns = db.prepare('PRAGMA table_info(stock_grants)').all() as any[];
 
@@ -131,8 +131,8 @@ describe('Database Operations', () => {
       db.close();
     });
 
-    test('should have id as primary key', () => {
-      const db = getDb();
+    test('should have id as primary key', async () => {
+      const db = await getDb();
 
       const columns = db.prepare('PRAGMA table_info(stock_grants)').all() as any[];
       const idColumn = columns.find(col => col.name === 'id');
@@ -143,8 +143,8 @@ describe('Database Operations', () => {
       db.close();
     });
 
-    test('should have NOT NULL constraints on required fields', () => {
-      const db = getDb();
+    test('should have NOT NULL constraints on required fields', async () => {
+      const db = await getDb();
 
       const columns = db.prepare('PRAGMA table_info(stock_grants)').all() as any[];
 
@@ -163,8 +163,8 @@ describe('Database Operations', () => {
       initDb();
     });
 
-    test('should insert a stock grant', () => {
-      const db = getDb();
+    test('should insert a stock grant', async () => {
+      const db = await getDb();
 
       const insert = db.prepare(`
         INSERT INTO stock_grants (
@@ -193,8 +193,8 @@ describe('Database Operations', () => {
       db.close();
     });
 
-    test('should retrieve inserted stock grant', () => {
-      const db = getDb();
+    test('should retrieve inserted stock grant', async () => {
+      const db = await getDb();
 
       // Insert
       db.prepare(`
@@ -217,8 +217,8 @@ describe('Database Operations', () => {
       db.close();
     });
 
-    test('should handle batch inserts with transaction', () => {
-      const db = getDb();
+    test('should handle batch inserts with transaction', async () => {
+      const db = await getDb();
 
       const insert = db.prepare(`
         INSERT INTO stock_grants (
@@ -248,8 +248,8 @@ describe('Database Operations', () => {
       db.close();
     });
 
-    test('should delete stock grants', () => {
-      const db = getDb();
+    test('should delete stock grants', async () => {
+      const db = await getDb();
 
       // Insert
       db.prepare(`
@@ -271,8 +271,8 @@ describe('Database Operations', () => {
       db.close();
     });
 
-    test('should query by ticker', () => {
-      const db = getDb();
+    test('should query by ticker', async () => {
+      const db = await getDb();
 
       // Insert multiple records
       const insert = db.prepare(`
@@ -295,8 +295,8 @@ describe('Database Operations', () => {
       db.close();
     });
 
-    test('should order by acquisition_date DESC', () => {
-      const db = getDb();
+    test('should order by acquisition_date DESC', async () => {
+      const db = await getDb();
 
       // Insert records
       const insert = db.prepare(`
@@ -327,8 +327,8 @@ describe('Database Operations', () => {
       initDb();
     });
 
-    test('should enforce NOT NULL constraint on ticker', () => {
-      const db = getDb();
+    test('should enforce NOT NULL constraint on ticker', async () => {
+      const db = await getDb();
 
       expect(() => {
         db.prepare(`
@@ -343,8 +343,8 @@ describe('Database Operations', () => {
       db.close();
     });
 
-    test('should enforce NOT NULL constraint on acquisition_date', () => {
-      const db = getDb();
+    test('should enforce NOT NULL constraint on acquisition_date', async () => {
+      const db = await getDb();
 
       expect(() => {
         db.prepare(`
@@ -359,8 +359,8 @@ describe('Database Operations', () => {
       db.close();
     });
 
-    test('should auto-generate id', () => {
-      const db = getDb();
+    test('should auto-generate id', async () => {
+      const db = await getDb();
 
       const result1 = db.prepare(`
         INSERT INTO stock_grants (

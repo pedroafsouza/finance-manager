@@ -8,10 +8,10 @@ import * as XLSX from 'xlsx';
 describe('Integration Tests', () => {
   const testDbPath = path.join(process.cwd(), 'data', 'finance.db');
 
-  beforeAll(() => {
+  beforeAll(async () => {
     // Ensure clean state
     if (fs.existsSync(testDbPath)) {
-      const db = getDb();
+      const db = await getDb();
       db.prepare('DELETE FROM stock_grants').run();
       db.close();
     } else {
@@ -19,15 +19,15 @@ describe('Integration Tests', () => {
     }
   });
 
-  afterAll(() => {
+  afterAll(async () => {
     // Cleanup test data
-    const db = getDb();
+    const db = await getDb();
     db.prepare('DELETE FROM stock_grants').run();
     db.close();
   });
 
   describe('End-to-End Import Flow', () => {
-    test('should complete full import workflow', () => {
+    test('should complete full import workflow', async () => {
       // Step 1: Create Excel file
       const workbook = XLSX.utils.book_new();
       const data = [
@@ -50,7 +50,7 @@ describe('Integration Tests', () => {
 
       // Step 3: Store in database
       initDb();
-      const db = getDb();
+      const db = await getDb();
 
       const insertStmt = db.prepare(`
         INSERT INTO stock_grants (
@@ -60,7 +60,7 @@ describe('Integration Tests', () => {
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
-      const insertMany = db.transaction((grants) => {
+      const insertMany = db.transaction((grants: any) => {
         for (const grant of grants) {
           insertStmt.run(
             grant.ticker,
@@ -98,7 +98,7 @@ describe('Integration Tests', () => {
       db.close();
     });
 
-    test('should handle real Morgan Stanley file if available', () => {
+    test('should handle real Morgan Stanley file if available', async () => {
       const realFilePath = path.resolve(__dirname, '../../data/morgan-stanley.xlsx');
 
       // Skip if real file doesn't exist
@@ -116,7 +116,7 @@ describe('Integration Tests', () => {
 
       // Store
       initDb();
-      const db = getDb();
+      const db = await getDb();
 
       // Clear existing data first
       db.prepare('DELETE FROM stock_grants').run();
@@ -129,7 +129,7 @@ describe('Integration Tests', () => {
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
-      const insertMany = db.transaction((grants) => {
+      const insertMany = db.transaction((grants: any) => {
         for (const grant of grants) {
           insertStmt.run(
             grant.ticker,
@@ -157,7 +157,7 @@ describe('Integration Tests', () => {
   });
 
   describe('Data Aggregation', () => {
-    beforeAll(() => {
+    beforeAll(async () => {
       // Setup test data
       const workbook = XLSX.utils.book_new();
       const data = [
@@ -174,7 +174,7 @@ describe('Integration Tests', () => {
 
       const grants = parseMorganStanleyExcel(buffer);
       initDb();
-      const db = getDb();
+      const db = await getDb();
 
       db.prepare('DELETE FROM stock_grants').run();
 
@@ -186,7 +186,7 @@ describe('Integration Tests', () => {
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
-      const insertMany = db.transaction((grants) => {
+      const insertMany = db.transaction((grants: any) => {
         for (const grant of grants) {
           insertStmt.run(
             grant.ticker,
@@ -207,8 +207,8 @@ describe('Integration Tests', () => {
       db.close();
     });
 
-    test('should calculate total portfolio value', () => {
-      const db = getDb();
+    test('should calculate total portfolio value', async () => {
+      const db = await getDb();
 
       const result = db.prepare(`
         SELECT SUM(current_value) as total_value
@@ -220,8 +220,8 @@ describe('Integration Tests', () => {
       db.close();
     });
 
-    test('should calculate total shares by ticker', () => {
-      const db = getDb();
+    test('should calculate total shares by ticker', async () => {
+      const db = await getDb();
 
       const result = db.prepare(`
         SELECT ticker, SUM(total_shares) as total_shares
@@ -239,8 +239,8 @@ describe('Integration Tests', () => {
       db.close();
     });
 
-    test('should calculate gains by capital gain type', () => {
-      const db = getDb();
+    test('should calculate gains by capital gain type', async () => {
+      const db = await getDb();
 
       const result = db.prepare(`
         SELECT capital_gain_impact, SUM(adjusted_gain_loss) as total_gain
@@ -257,8 +257,8 @@ describe('Integration Tests', () => {
       db.close();
     });
 
-    test('should calculate average cost basis per share by ticker', () => {
-      const db = getDb();
+    test('should calculate average cost basis per share by ticker', async () => {
+      const db = await getDb();
 
       const result = db.prepare(`
         SELECT ticker, AVG(adjusted_cost_basis_per_share) as avg_cost_basis
@@ -278,7 +278,7 @@ describe('Integration Tests', () => {
   });
 
   describe('Error Recovery', () => {
-    test('should rollback transaction on error', () => {
+    test('should rollback transaction on error', async () => {
       const workbook = XLSX.utils.book_new();
       const data = [
         ['Acquisition Date', 'Lot', 'Capital Gain Impact', 'Adjusted Gain/Loss', 'Adjusted Cost Basis *', 'Adjusted Cost Basis Per Share *', 'Total Shares You Hold', 'Current Price per Share', 'Current Value'],
@@ -291,7 +291,7 @@ describe('Integration Tests', () => {
 
       const grants = parseMorganStanleyExcel(buffer);
 
-      const db = getDb();
+      const db = await getDb();
       const countBefore = db.prepare('SELECT COUNT(*) as count FROM stock_grants').get() as any;
 
       try {
@@ -303,7 +303,7 @@ describe('Integration Tests', () => {
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `);
 
-        const insertMany = db.transaction((grants) => {
+        const insertMany = db.transaction((grants: any) => {
           for (const grant of grants) {
             insertStmt.run(
               grant.ticker,

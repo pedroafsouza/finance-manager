@@ -1,4 +1,4 @@
-import { describe, expect, test, beforeEach, afterEach } from 'bun:test';
+import { describe, expect, test, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as XLSX from 'xlsx';
@@ -82,10 +82,10 @@ describe('API Endpoints', () => {
     test('should return error for Excel file with no data', async () => {
       // Create an Excel file with only headers
       const workbook = XLSX.utils.book_new();
-      const data = [
+      const excelData = [
         ['Acquisition Date', 'Lot', 'Capital Gain Impact', 'Adjusted Gain/Loss', 'Adjusted Cost Basis *', 'Adjusted Cost Basis Per Share *', 'Total Shares You Hold', 'Current Price per Share', 'Current Value'],
       ];
-      const worksheet = XLSX.utils.aoa_to_sheet(data);
+      const worksheet = XLSX.utils.aoa_to_sheet(excelData);
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
       const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
 

@@ -200,7 +200,7 @@ export const initAnalysisDb = (dbName: 'demo-analysis.db' | 'finance-analysis.db
   `);
 
   // Add new columns if they don't exist (for backwards compatibility)
-  const tableInfo = db.pragma(`table_info(llm_analysis_reports)`);
+  const tableInfo = db.pragma(`table_info(llm_analysis_reports)`) as any[];
   const columnNames = tableInfo.map((col: any) => col.name);
 
   if (!columnNames.includes('is_error')) {

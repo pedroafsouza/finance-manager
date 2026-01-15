@@ -14,7 +14,7 @@ export async function GET(
     const report = db.prepare(`
       SELECT * FROM llm_analysis_reports
       WHERE id = ?
-    `).get(id);
+    `).get(id) as any;
 
     if (!report) {
       return NextResponse.json(

@@ -33,7 +33,7 @@ function generateAnalysisPrompt(data: DataSnapshot): string {
     return acc;
   }, {} as Record<string, number>);
 
-  const concentrationData = Object.entries(holdingsByTicker)
+  const concentrationData = (Object.entries(holdingsByTicker) as [string, number][])
     .map(([ticker, value]) => ({
       ticker,
       value,
@@ -77,7 +77,7 @@ function generateAnalysisPrompt(data: DataSnapshot): string {
 - Average Gain/Loss per Holding: $${avgGainLoss.toFixed(2)}
 
 **Portfolio Concentration:**
-${concentrationData.map(c =>
+${concentrationData.map((c: { ticker: string; value: number; percentage: number }) =>
   `- ${c.ticker}: $${c.value.toFixed(2)} (${c.percentage.toFixed(1)}% of portfolio)`
 ).join('\n')}
 
@@ -201,6 +201,10 @@ export async function analyzeWithGemini(apiKey: string, data: DataSnapshot): Pro
   });
 
   const content = response.text;
+
+  if (!content) {
+    throw new Error('Empty response from Gemini');
+  }
 
   // Parse JSON response
   const jsonMatch = content.match(/\{[\s\S]*\}/);
