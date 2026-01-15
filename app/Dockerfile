@@ -5,13 +5,6 @@ FROM oven/bun:1 AS base
 FROM base AS deps
 WORKDIR /app
 
-# Install build dependencies for native modules (better-sqlite3)
-RUN apt-get update && apt-get install -y \
-    python3 \
-    make \
-    g++ \
-    && rm -rf /var/lib/apt/lists/*
-
 # Copy package files
 COPY package.json bun.lockb* ./
 

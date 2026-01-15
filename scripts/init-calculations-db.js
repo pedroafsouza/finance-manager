@@ -1,11 +1,11 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 /**
  * Initialize the calculations databases
  */
 
-const Database = require('better-sqlite3');
-const path = require('path');
-const fs = require('fs');
+import { Database } from 'bun:sqlite';
+import path from 'path';
+import fs from 'fs';
 
 const dataDir = path.join(process.cwd(), 'data');
 
@@ -19,7 +19,7 @@ function initCalculationsDb(dbName) {
 
   const dbPath = path.join(dataDir, dbName);
   const db = new Database(dbPath);
-  db.pragma('journal_mode = WAL');
+  db.exec("PRAGMA journal_mode = WAL");
 
   // Create tax_calculations table
   db.exec(`

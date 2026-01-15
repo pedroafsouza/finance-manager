@@ -1,4 +1,4 @@
-import Database from 'better-sqlite3';
+import { Database } from 'bun:sqlite';
 import path from 'path';
 import fs from 'fs';
 import { cookies } from 'next/headers';
@@ -25,7 +25,7 @@ export const getDb = async () => {
   const dbPath = path.join(process.cwd(), 'data', dbName);
 
   const db = new Database(dbPath);
-  db.pragma('journal_mode = WAL');
+  db.exec("PRAGMA journal_mode = WAL");
   return db;
 };
 
@@ -46,7 +46,7 @@ export const getAnalysisDb = async () => {
   const dbPath = path.join(process.cwd(), 'data', dbName);
 
   const db = new Database(dbPath);
-  db.pragma('journal_mode = WAL');
+  db.exec("PRAGMA journal_mode = WAL");
   return db;
 };
 
@@ -67,7 +67,7 @@ export const getSecretsDb = async () => {
   const dbPath = path.join(process.cwd(), 'data', dbName);
 
   const db = new Database(dbPath);
-  db.pragma('journal_mode = WAL');
+  db.exec("PRAGMA journal_mode = WAL");
   return db;
 };
 
@@ -88,7 +88,7 @@ export const getCalculationsDb = async () => {
   const dbPath = path.join(process.cwd(), 'data', dbName);
 
   const db = new Database(dbPath);
-  db.pragma('journal_mode = WAL');
+  db.exec("PRAGMA journal_mode = WAL");
   return db;
 };
 
@@ -176,7 +176,7 @@ export const initDb = async () => {
 export const initAnalysisDb = (dbName: 'demo-analysis.db' | 'finance-analysis.db') => {
   const dbPath = path.join(process.cwd(), 'data', dbName);
   const db = new Database(dbPath);
-  db.pragma('journal_mode = WAL');
+  db.exec("PRAGMA journal_mode = WAL");
 
   // Create LLM analysis reports table
   db.exec(`
@@ -200,7 +200,7 @@ export const initAnalysisDb = (dbName: 'demo-analysis.db' | 'finance-analysis.db
   `);
 
   // Add new columns if they don't exist (for backwards compatibility)
-  const tableInfo = db.pragma(`table_info(llm_analysis_reports)`) as any[];
+  const tableInfo = db.prepare(`PRAGMA table_info(llm_analysis_reports)`).all() as any[];
   const columnNames = tableInfo.map((col: any) => col.name);
 
   if (!columnNames.includes('is_error')) {
@@ -228,7 +228,7 @@ export const initLiveAnalysisDb = () => initAnalysisDb('finance-analysis.db');
 export const initSecretsDb = (dbName: 'demo-secrets.db' | 'finance-secrets.db') => {
   const dbPath = path.join(process.cwd(), 'data', dbName);
   const db = new Database(dbPath);
-  db.pragma('journal_mode = WAL');
+  db.exec("PRAGMA journal_mode = WAL");
 
   // Create LLM settings table - stores API keys in plain text
   db.exec(`
@@ -253,7 +253,7 @@ export const initLiveSecretsDb = () => initSecretsDb('finance-secrets.db');
 export const initCalculationsDb = (dbName: 'demo-calculations.db' | 'finance-calculations.db') => {
   const dbPath = path.join(process.cwd(), 'data', dbName);
   const db = new Database(dbPath);
-  db.pragma('journal_mode = WAL');
+  db.exec("PRAGMA journal_mode = WAL");
 
   // Create tax_calculations table - Danish tax calculations by year
   db.exec(`

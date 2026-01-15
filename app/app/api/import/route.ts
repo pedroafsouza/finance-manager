@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { parseMorganStanleyExcel } from '@/lib/excel-parser';
+import { parseMorganStanleyExcel, StockGrant } from '@/lib/excel-parser';
 import { getDb, initDb } from '@/lib/db';
 
 export const runtime = 'nodejs';
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
-    const insertMany = db.transaction((grants) => {
+    const insertMany = db.transaction((grants: StockGrant[]) => {
       for (const grant of grants) {
         insertStmt.run(
           grant.ticker,

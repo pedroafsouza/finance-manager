@@ -1,10 +1,10 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 /**
  * Verify the calculations databases structure
  */
 
-const Database = require('better-sqlite3');
-const path = require('path');
+import { Database } from 'bun:sqlite';
+import path from 'path';
 
 const dataDir = path.join(process.cwd(), 'data');
 
@@ -15,7 +15,7 @@ function verifyDb(dbName) {
   const db = new Database(dbPath, { readonly: true });
 
   // Get table info
-  const tableInfo = db.pragma('table_info(tax_calculations)');
+  const tableInfo = db.prepare('PRAGMA table_info(tax_calculations)').all();
 
   console.log('\n✓ Table: tax_calculations');
   console.log('  Columns:');

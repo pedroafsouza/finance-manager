@@ -1,12 +1,12 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 /**
  * Migration script to move tax_calculations table from main databases
  * to dedicated calculation databases
  */
 
-const Database = require('better-sqlite3');
-const path = require('path');
-const fs = require('fs');
+import { Database } from 'bun:sqlite';
+import path from 'path';
+import fs from 'fs';
 
 const dataDir = path.join(process.cwd(), 'data');
 
@@ -59,7 +59,7 @@ function migrateTaxCalculations(sourceDbName, targetDbName, mode) {
 
   // Initialize target database
   const targetDb = new Database(targetDbPath);
-  targetDb.pragma('journal_mode = WAL');
+  targetDb.exec("PRAGMA journal_mode = WAL");
 
   // Create tax_calculations table in target database
   targetDb.exec(`

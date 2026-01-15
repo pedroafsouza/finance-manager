@@ -1,10 +1,10 @@
-#!/usr/bin/env node
+#!/usr/bin/env bun
 /**
  * Remove tax_calculations table from demo.db
  */
 
-const Database = require('better-sqlite3');
-const path = require('path');
+import { Database } from 'bun:sqlite';
+import path from 'path';
 
 const dataDir = path.join(process.cwd(), 'data');
 const dbPath = path.join(dataDir, 'demo.db');

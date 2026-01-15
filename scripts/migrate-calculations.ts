@@ -4,7 +4,7 @@
  * to dedicated calculation databases
  */
 
-import Database from 'better-sqlite3';
+import { Database } from 'bun:sqlite';
 import path from 'path';
 import fs from 'fs';
 
@@ -63,7 +63,7 @@ function migrateTaxCalculations(
 
   // Initialize target database
   const targetDb = new Database(targetDbPath);
-  targetDb.pragma('journal_mode = WAL');
+  targetDb.exec("PRAGMA journal_mode = WAL");
 
   // Create tax_calculations table in target database
   targetDb.exec(`
