@@ -6,10 +6,10 @@ FROM base AS deps
 WORKDIR /app
 
 # Copy package files
-COPY package.json bun.lockb* ./
+COPY package.json ./
 
-# Install dependencies
-RUN bun install --frozen-lockfile
+# Install dependencies without using lockfile
+RUN bun install --no-save
 
 # Rebuild the source code only when needed
 FROM base AS builder

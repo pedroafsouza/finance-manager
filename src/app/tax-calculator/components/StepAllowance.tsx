@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import { WizardFormData } from '../types';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,9 +14,18 @@ interface StepAllowanceProps {
 
 export default function StepAllowance({ formData, updateFormData }: StepAllowanceProps) {
   const currencyLabel = formData.currency === 'USD' ? '(USD)' : '(DKK)';
+  const hasSetDefaultRef = useRef(false);
 
-  // Calculate suggested allowance (typically around 20-25% of the 7P amount)
-  const suggestedAllowance = Math.round((formData.amountOn7p || 0) * 0.22);
+  // Calculate suggested allowance as 20% of yearly salary
+  const suggestedAllowance = Math.round((formData.yearlySalary || 0) * 0.20);
+
+  // Automatically set the allowance to 20% of salary when component loads
+  useEffect(() => {
+    if (!hasSetDefaultRef.current && formData.yearlySalary > 0 && formData.microsoftAllowance7p === 0) {
+      updateFormData({ microsoftAllowance7p: suggestedAllowance });
+      hasSetDefaultRef.current = true;
+    }
+  }, [formData.yearlySalary, formData.microsoftAllowance7p, suggestedAllowance, updateFormData]);
 
   const applySuggestedAllowance = () => {
     updateFormData({ microsoftAllowance7p: suggestedAllowance });
@@ -52,14 +62,14 @@ export default function StepAllowance({ formData, updateFormData }: StepAllowanc
             type="button"
             variant="outline"
             onClick={applySuggestedAllowance}
-            disabled={!formData.amountOn7p}
+            disabled={!formData.yearlySalary}
           >
             <Calculator className="mr-2 h-4 w-4" />
             Estimate
           </Button>
         </div>
         <p className="text-sm text-muted-foreground">
-          Enter the exact allowance from your KPMG statement, or click "Estimate" for an approximation (~22%)
+          Enter the exact allowance from your KPMG statement, or click "Estimate" for an approximation (20% of salary)
         </p>
       </div>
 
@@ -103,11 +113,11 @@ export default function StepAllowance({ formData, updateFormData }: StepAllowanc
       )}
 
       {/* Suggested Allowance Info */}
-      {formData.amountOn7p > 0 && suggestedAllowance !== formData.microsoftAllowance7p && (
+      {formData.yearlySalary > 0 && suggestedAllowance !== formData.microsoftAllowance7p && (
         <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950">
           <p className="text-sm text-blue-800 dark:text-blue-200">
             <strong>Estimated allowance:</strong> {formData.currency} {suggestedAllowance.toLocaleString()}{' '}
-            (approximately 22% of §7P income)
+            (20% of yearly salary)
           </p>
           <p className="mt-1 text-xs text-blue-700 dark:text-blue-300">
             This is just an estimate. Always use the exact value from your KPMG tax statement for accurate calculations.

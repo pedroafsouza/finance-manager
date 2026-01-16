@@ -24,6 +24,30 @@ async function initCalculationsDb() {
   }
 }
 
+// Helper to convert snake_case database fields to camelCase
+function convertDbRowToCamelCase(row: any) {
+  return {
+    id: row.id,
+    year: row.year,
+    yearlySalaryDkk: row.yearly_salary_dkk,
+    fradragDkk: row.fradrag_dkk,
+    amountOn7pDkk: row.amount_on_7p_dkk,
+    amountNotOn7pDkk: row.amount_not_on_7p_dkk,
+    microsoftAllowance7pDkk: row.microsoft_allowance_7p_dkk,
+    preferredCurrency: row.preferred_currency,
+    usdToDkkRate: row.usd_to_dkk_rate,
+    calculatedTaxDkk: row.calculated_tax_dkk,
+    amBidragDkk: row.am_bidrag_dkk,
+    bottomTaxDkk: row.bottom_tax_dkk,
+    topTaxDkk: row.top_tax_dkk,
+    municipalTaxDkk: row.municipal_tax_dkk,
+    totalTaxDkk: row.total_tax_dkk,
+    notes: row.notes,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
 // GET - Fetch all tax calculations
 export async function GET() {
   try {
@@ -37,10 +61,13 @@ export async function GET() {
 
     db.close();
 
+    // Convert snake_case to camelCase
+    const formattedCalculations = calculations.map(convertDbRowToCamelCase);
+
     return NextResponse.json({
       success: true,
-      data: calculations,
-      count: calculations.length,
+      data: formattedCalculations,
+      count: formattedCalculations.length,
     });
   } catch (error) {
     console.error('Error fetching tax calculations:', error);
