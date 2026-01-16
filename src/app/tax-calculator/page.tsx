@@ -7,6 +7,7 @@ import { Plus, Calculator, Trash2, Edit } from 'lucide-react';
 import TaxWizard from './components/TaxWizard';
 import { TaxCalculation, WizardFormData } from './types';
 import { formatDKK, convertUsdToDkk } from '@/lib/tax-calculator-danish';
+import Spinner from '../components/Spinner';
 
 export default function TaxCalculatorPage() {
   const [calculations, setCalculations] = useState<TaxCalculation[]>([]);
@@ -154,7 +155,9 @@ export default function TaxCalculatorPage() {
 
         {/* Loading State */}
         {loading && (
-          <div className="text-center text-muted-foreground">Loading calculations...</div>
+          <div className="flex justify-center">
+            <Spinner size={32} />
+          </div>
         )}
 
         {/* Empty State */}

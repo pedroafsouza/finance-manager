@@ -5,6 +5,7 @@ import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import { useCurrencyStore } from '@/lib/stores/currency-store';
 import { formatCurrency, convertCurrency } from '@/lib/currency';
+import Spinner from '../components/Spinner';
 
 interface StockGrant {
   id: number;
@@ -52,7 +53,9 @@ export default function ReportsPage() {
               Reports & Analytics
             </h1>
           </div>
-          <div className="text-center text-gray-600 dark:text-gray-400">Loading...</div>
+          <div className="flex justify-center">
+            <Spinner size={32} />
+          </div>
         </div>
       </div>
     );

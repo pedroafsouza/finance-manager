@@ -7,6 +7,7 @@ import FullCalendarView from './components/FullCalendarView';
 import EventDetailsSidebar from './components/EventDetailsSidebar';
 import { useCurrencyStore } from '@/lib/stores/currency-store';
 import { formatCurrency } from '@/lib/currency';
+import Spinner from '../components/Spinner';
 
 export default function CalendarPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -84,7 +85,9 @@ export default function CalendarPage() {
               Transaction Calendar
             </h1>
           </div>
-          <div className="text-center text-gray-600 dark:text-gray-400">Loading...</div>
+          <div className="flex justify-center">
+            <Spinner size={32} />
+          </div>
         </div>
       </div>
     );

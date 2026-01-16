@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useCurrencyStore } from '@/lib/stores/currency-store';
 import { formatCurrency } from '@/lib/currency';
+import Spinner from '@/app/components/Spinner';
 
 interface AnalysisReport {
   id: number;
@@ -113,7 +114,7 @@ export default function AnalysisDetailPage() {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="text-muted-foreground">Loading analysis...</div>
+        <Spinner size={32} />
       </div>
     );
   }

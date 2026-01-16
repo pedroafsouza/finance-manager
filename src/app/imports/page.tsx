@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useCurrencyStore } from '@/lib/stores/currency-store';
 import { formatCurrency } from '@/lib/currency';
+import Spinner from '../components/Spinner';
 
 interface StockGrant {
   id: number;
@@ -206,8 +207,8 @@ export default function ImportsPage() {
 
           <div className="overflow-x-auto">
             {loading ? (
-              <div className="p-8 text-center text-gray-600 dark:text-gray-400">
-                Loading...
+              <div className="flex justify-center p-8">
+                <Spinner size={32} />
               </div>
             ) : grants.length === 0 ? (
               <div className="p-8 text-center text-gray-600 dark:text-gray-400">

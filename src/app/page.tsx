@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Eye, Upload, Calendar as CalendarIcon, TrendingUp, Package, Sparkles } from 'lucide-react';
+import Spinner from './components/Spinner';
 
 interface StockGrant {
   id: number;
@@ -112,7 +113,7 @@ export default function Home() {
       <>
         <WelcomeDialog />
         <div className="flex min-h-screen items-center justify-center">
-          <div className="text-muted-foreground">Loading...</div>
+          <Spinner size={32} />
         </div>
       </>
     );
