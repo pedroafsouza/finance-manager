@@ -24,14 +24,14 @@ describe('Database Operations', () => {
   });
 
   describe('initDb', () => {
-    test('should create database file', () => {
-      initDb();
+    test('should create database file', async () => {
+      await initDb();
 
       expect(fs.existsSync(path.join(process.cwd(), 'data', 'finance.db'))).toBe(true);
     });
 
     test('should create stock_grants table', async () => {
-      initDb();
+      await initDb();
       const db = await getDb();
 
       // Query to check if table exists
@@ -47,24 +47,24 @@ describe('Database Operations', () => {
     });
 
     test('should create index on ticker and acquisition_date', async () => {
-      initDb();
+      await initDb();
       const db = await getDb();
 
       const result = db.prepare(`
         SELECT name FROM sqlite_master
-        WHERE type='index' AND name='idx_ticker_date'
+        WHERE type='index' AND name='idx_grants_ticker_date'
       `).get();
 
       expect(result).toBeDefined();
-      expect((result as any).name).toBe('idx_ticker_date');
+      expect((result as any).name).toBe('idx_grants_ticker_date');
 
       db.close();
     });
 
     test('should be idempotent (safe to run multiple times)', async () => {
-      initDb();
-      initDb();
-      initDb();
+      await initDb();
+      await initDb();
+      await initDb();
 
       const db = await getDb();
       const result = db.prepare(`
@@ -80,7 +80,7 @@ describe('Database Operations', () => {
 
   describe('getDb', () => {
     test('should return database instance', async () => {
-      initDb();
+      await initDb();
       const db = await getDb();
 
       expect(db).toBeDefined();
@@ -91,19 +91,23 @@ describe('Database Operations', () => {
     });
 
     test('should enable WAL mode', async () => {
-      initDb();
+      await initDb();
       const db = await getDb();
 
-      const result = db.pragma('journal_mode', { simple: true });
-      expect(result).toBe('wal');
+      const result = db.prepare('PRAGMA journal_mode').get() as any;
+      expect(result.journal_mode).toBe('wal');
 
       db.close();
     });
   });
 
   describe('Stock Grants Table Schema', () => {
-    beforeEach(() => {
-      initDb();
+    beforeEach(async () => {
+      await initDb();
+      // Clear the table
+      const db = await getDb();
+      db.prepare('DELETE FROM stock_grants').run();
+      db.close();
     });
 
     test('should have all required columns', async () => {
@@ -159,8 +163,12 @@ describe('Database Operations', () => {
   });
 
   describe('CRUD Operations', () => {
-    beforeEach(() => {
-      initDb();
+    beforeEach(async () => {
+      await initDb();
+      // Clear the table
+      const db = await getDb();
+      db.prepare('DELETE FROM stock_grants').run();
+      db.close();
     });
 
     test('should insert a stock grant', async () => {

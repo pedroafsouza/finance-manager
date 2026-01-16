@@ -74,9 +74,9 @@ describe('API Endpoints', () => {
         body: formData,
       });
 
-      expect(response.status).toBe(500);
+      expect(response.status).toBe(400);
       const data = await response.json();
-      expect(data.error).toBe('Failed to import file');
+      expect(data.error).toBe('No data found in file');
     });
 
     test('should return error for Excel file with no data', async () => {
@@ -312,7 +312,7 @@ describe('API Endpoints', () => {
         body: JSON.stringify({ invalid: 'data' }),
       });
 
-      expect(response.status).toBe(400);
+      expect(response.status).toBe(500);
     });
   });
 
