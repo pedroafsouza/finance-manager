@@ -128,11 +128,32 @@ export const initDb = async () => {
       total_shares REAL,
       current_price_per_share REAL,
       current_value REAL,
+      cost_basis_method TEXT DEFAULT 'lot-based',
+      weighted_average_cost_per_share REAL,
+      weighted_average_updated_at TEXT,
       import_source TEXT DEFAULT 'morgan-stanley-pdf',
       import_date TEXT DEFAULT CURRENT_TIMESTAMP,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
+  // Add new columns to existing holdings table if they don't exist
+  try {
+    const holdingsInfo = db.prepare(`PRAGMA table_info(holdings)`).all() as any[];
+    const columnNames = holdingsInfo.map((col: any) => col.name);
+
+    if (!columnNames.includes('cost_basis_method')) {
+      db.exec(`ALTER TABLE holdings ADD COLUMN cost_basis_method TEXT DEFAULT 'lot-based'`);
+    }
+    if (!columnNames.includes('weighted_average_cost_per_share')) {
+      db.exec(`ALTER TABLE holdings ADD COLUMN weighted_average_cost_per_share REAL`);
+    }
+    if (!columnNames.includes('weighted_average_updated_at')) {
+      db.exec(`ALTER TABLE holdings ADD COLUMN weighted_average_updated_at TEXT`);
+    }
+  } catch (error) {
+    // Ignore errors if columns already exist
+  }
 
   // Keep old stock_grants table for backward compatibility
   db.exec(`
@@ -154,6 +175,18 @@ export const initDb = async () => {
     )
   `);
 
+  // Create exchange_rates table - caches official Danmarks Nationalbank rates
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS exchange_rates (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      date TEXT NOT NULL UNIQUE,
+      usd_to_dkk REAL NOT NULL,
+      source TEXT DEFAULT 'nationalbanken',
+      fetched_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
   // Create indexes
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_transactions_date
@@ -167,6 +200,9 @@ export const initDb = async () => {
 
     CREATE INDEX IF NOT EXISTS idx_grants_ticker_date
     ON stock_grants(ticker, acquisition_date);
+
+    CREATE INDEX IF NOT EXISTS idx_exchange_rates_date
+    ON exchange_rates(date DESC);
   `);
 
   db.close();
@@ -274,10 +310,27 @@ export const initCalculationsDb = (dbName: 'demo-calculations.db' | 'finance-cal
       municipal_tax_dkk REAL,
       total_tax_dkk REAL,
       notes TEXT,
+      is_us_person BOOLEAN DEFAULT 0,
+      irs_tax_paid_usd REAL DEFAULT 0,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP,
       updated_at TEXT DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
+  // Add new columns to existing tax_calculations table if they don't exist
+  try {
+    const tableInfo = db.prepare(`PRAGMA table_info(tax_calculations)`).all() as any[];
+    const columnNames = tableInfo.map((col: any) => col.name);
+
+    if (!columnNames.includes('is_us_person')) {
+      db.exec(`ALTER TABLE tax_calculations ADD COLUMN is_us_person BOOLEAN DEFAULT 0`);
+    }
+    if (!columnNames.includes('irs_tax_paid_usd')) {
+      db.exec(`ALTER TABLE tax_calculations ADD COLUMN irs_tax_paid_usd REAL DEFAULT 0`);
+    }
+  } catch (error) {
+    // Ignore errors if columns already exist
+  }
 
   db.close();
 };

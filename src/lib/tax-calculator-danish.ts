@@ -9,7 +9,7 @@ export interface TaxInput {
   fradragDkk: number; // Deductions
   amountOn7pDkk: number; // Amount reported on ligningslovens § 7P
   amountNotOn7pDkk: number; // Amount not on 7P (taxed as regular income)
-  microsoftAllowance7pDkk: number; // Microsoft's calculated 7P allowance
+  microsoftAllowance7pDkk?: number; // Optional: Manual override of 7P allowance (auto-calculated if not provided)
   year: number;
 }
 
@@ -38,6 +38,7 @@ export interface TaxResult {
   netIncome: number;
 
   // 7P benefit
+  microsoftAllowance7pDkk: number; // Auto-calculated 7P allowance (20% of salary)
   tax7pReduction: number;
   regularTaxOn7pAmount: number;
 }
@@ -69,6 +70,9 @@ export function getTaxRates(year: number) {
  */
 export function calculateDanishTax(input: TaxInput): TaxResult {
   const rates = getTaxRates(input.year);
+
+  // Auto-calculate §7P allowance as 20% of yearly salary (if not manually provided)
+  const microsoftAllowance7pDkk = input.microsoftAllowance7pDkk ?? (input.yearlySalaryDkk * 0.20);
 
   // Step 1: Calculate total income
   // Salary + RSU income (both 7P and non-7P)
@@ -108,7 +112,7 @@ export function calculateDanishTax(input: TaxInput): TaxResult {
   let tax7pReduction = 0;
   let regularTaxOn7pAmount = 0;
 
-  if (input.amountOn7pDkk > 0 && input.microsoftAllowance7pDkk > 0) {
+  if (input.amountOn7pDkk > 0 && microsoftAllowance7pDkk > 0) {
     // Calculate what the tax would be on the 7P amount without the allowance
     const totalIncomeWithout7pBenefit = totalIncome;
     const amBidragOn7p = input.amountOn7pDkk * rates.amBidrag;
@@ -118,8 +122,8 @@ export function calculateDanishTax(input: TaxInput): TaxResult {
     const averageTaxRate = rates.municipalTax + rates.bottomTax;
     regularTaxOn7pAmount = taxableOn7p * averageTaxRate;
 
-    // The benefit is the tax on the allowance amount
-    const allowanceAfterAmBidrag = input.microsoftAllowance7pDkk * (1 - rates.amBidrag);
+    // The benefit is the tax on the allowance amount (20% of salary)
+    const allowanceAfterAmBidrag = microsoftAllowance7pDkk * (1 - rates.amBidrag);
     tax7pReduction = allowanceAfterAmBidrag * averageTaxRate;
   }
 
@@ -144,6 +148,7 @@ export function calculateDanishTax(input: TaxInput): TaxResult {
     totalTax,
     effectiveTaxRate,
     netIncome,
+    microsoftAllowance7pDkk,
     tax7pReduction,
     regularTaxOn7pAmount,
   };

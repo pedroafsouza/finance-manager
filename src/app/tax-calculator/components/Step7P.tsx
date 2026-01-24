@@ -1,7 +1,7 @@
 'use client';
 
 import { WizardFormData } from '../types';
-import { Input } from '@/components/ui/input';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import { Label } from '@/components/ui/label';
 import { Info } from 'lucide-react';
 
@@ -11,8 +11,6 @@ interface Step7PProps {
 }
 
 export default function Step7P({ formData, updateFormData }: Step7PProps) {
-  const currencyLabel = formData.currency === 'USD' ? '(USD)' : '(DKK)';
-
   return (
     <div className="space-y-6">
       {/* Info box about §7P */}
@@ -37,14 +35,13 @@ export default function Step7P({ formData, updateFormData }: Step7PProps) {
       {/* Amount on §7P */}
       <div className="space-y-2">
         <Label htmlFor="amountOn7p">
-          Amount Reported on §7P {currencyLabel}
+          Amount Reported on §7P
         </Label>
-        <Input
+        <CurrencyInput
           id="amountOn7p"
-          type="number"
-          step="0.01"
-          value={formData.amountOn7p || ''}
-          onChange={(e) => updateFormData({ amountOn7p: parseFloat(e.target.value) || 0 })}
+          value={formData.amountOn7p}
+          onChange={(value) => updateFormData({ amountOn7p: value })}
+          currency={formData.currency}
           placeholder="0.00"
         />
         <p className="text-sm text-muted-foreground">
@@ -55,14 +52,13 @@ export default function Step7P({ formData, updateFormData }: Step7PProps) {
       {/* Amount NOT on §7P */}
       <div className="space-y-2">
         <Label htmlFor="amountNotOn7p">
-          Amount NOT Reported on §7P {currencyLabel}
+          Amount NOT Reported on §7P
         </Label>
-        <Input
+        <CurrencyInput
           id="amountNotOn7p"
-          type="number"
-          step="0.01"
-          value={formData.amountNotOn7p || ''}
-          onChange={(e) => updateFormData({ amountNotOn7p: parseFloat(e.target.value) || 0 })}
+          value={formData.amountNotOn7p}
+          onChange={(value) => updateFormData({ amountNotOn7p: value })}
+          currency={formData.currency}
           placeholder="0.00"
         />
         <p className="text-sm text-muted-foreground">

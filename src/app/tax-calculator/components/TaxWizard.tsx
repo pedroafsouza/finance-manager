@@ -28,6 +28,8 @@ export default function TaxWizard({ onComplete, onCancel, initialData }: TaxWiza
     currency: initialData?.currency || 'DKK',
     usdToDkkRate: initialData?.usdToDkkRate || 6.9,
     notes: initialData?.notes || '',
+    isUsPerson: initialData?.isUsPerson || false,
+    irsTaxPaidUsd: initialData?.irsTaxPaidUsd || 0,
   });
 
   const steps = [

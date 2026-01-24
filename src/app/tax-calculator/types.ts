@@ -15,6 +15,8 @@ export interface TaxCalculation {
   municipalTaxDkk?: number;
   totalTaxDkk?: number;
   notes?: string;
+  isUsPerson?: boolean;
+  irsTaxPaidUsd?: number;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -29,4 +31,6 @@ export interface WizardFormData {
   currency: 'DKK' | 'USD';
   usdToDkkRate: number;
   notes: string;
+  isUsPerson: boolean;
+  irsTaxPaidUsd: number;
 }

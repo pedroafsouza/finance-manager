@@ -43,6 +43,8 @@ function convertDbRowToCamelCase(row: any) {
     municipalTaxDkk: row.municipal_tax_dkk,
     totalTaxDkk: row.total_tax_dkk,
     notes: row.notes,
+    isUsPerson: row.is_us_person === 1,
+    irsTaxPaidUsd: row.irs_tax_paid_usd,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -94,6 +96,8 @@ export async function POST(request: NextRequest) {
       preferredCurrency = 'DKK',
       usdToDkkRate = 6.9,
       notes = '',
+      isUsPerson = false,
+      irsTaxPaidUsd = 0,
     } = body;
 
     // Validate required fields
@@ -125,8 +129,9 @@ export async function POST(request: NextRequest) {
           amount_on_7p_dkk, amount_not_on_7p_dkk, microsoft_allowance_7p_dkk,
           preferred_currency, usd_to_dkk_rate,
           calculated_tax_dkk, am_bidrag_dkk, bottom_tax_dkk, top_tax_dkk,
-          municipal_tax_dkk, total_tax_dkk, notes
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          municipal_tax_dkk, total_tax_dkk, notes,
+          is_us_person, irs_tax_paid_usd
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
       const result = stmt.run(
@@ -144,7 +149,9 @@ export async function POST(request: NextRequest) {
         taxResult.topTax,
         taxResult.municipalTax,
         taxResult.totalTax,
-        notes
+        notes,
+        isUsPerson ? 1 : 0,
+        irsTaxPaidUsd || 0
       );
 
       db.close();
@@ -191,6 +198,8 @@ export async function PUT(request: NextRequest) {
       preferredCurrency = 'DKK',
       usdToDkkRate = 6.9,
       notes = '',
+      isUsPerson = false,
+      irsTaxPaidUsd = 0,
     } = body;
 
     if (!id) {
@@ -230,6 +239,8 @@ export async function PUT(request: NextRequest) {
           municipal_tax_dkk = ?,
           total_tax_dkk = ?,
           notes = ?,
+          is_us_person = ?,
+          irs_tax_paid_usd = ?,
           updated_at = CURRENT_TIMESTAMP
       WHERE id = ?
     `);
@@ -249,6 +260,8 @@ export async function PUT(request: NextRequest) {
       taxResult.municipalTax,
       taxResult.totalTax,
       notes,
+      isUsPerson ? 1 : 0,
+      irsTaxPaidUsd || 0,
       id
     );
 
