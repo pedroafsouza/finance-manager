@@ -6,6 +6,8 @@
 
 import { getDb } from './db';
 import { convertUsdToDkk } from './exchange-rates';
+import { formatDKK, formatUSD } from './utils/currency-formatter';
+import { getYearDateRange } from './utils/date-filters';
 
 export interface DividendTransaction {
   id: number;
@@ -64,8 +66,7 @@ export async function getDividendTransactions(year: number): Promise<DividendTra
   const db = await getDb();
 
   try {
-    const startDate = `${year}-01-01`;
-    const endDate = `${year}-12-31`;
+    const { startDate, endDate } = getYearDateRange(year);
 
     const dividends = db.prepare(`
       SELECT * FROM transactions
@@ -98,8 +99,7 @@ export async function getWithholdingTransactions(year: number): Promise<Withhold
   const db = await getDb();
 
   try {
-    const startDate = `${year}-01-01`;
-    const endDate = `${year}-12-31`;
+    const { startDate, endDate } = getYearDateRange(year);
 
     const withholdings = db.prepare(`
       SELECT * FROM transactions
@@ -229,24 +229,16 @@ export async function calculateDividendTaxReport(
 
 /**
  * Format DKK amount for display
+ * @deprecated Use formatDKK from '@/lib/utils/currency-formatter' instead
  */
 export function formatDkk(amount: number): string {
-  return new Intl.NumberFormat('da-DK', {
-    style: 'currency',
-    currency: 'DKK',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount);
+  return formatDKK(amount);
 }
 
 /**
  * Format USD amount for display
+ * @deprecated Use formatUSD from '@/lib/utils/currency-formatter' instead
  */
 export function formatUsd(amount: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount);
+  return formatUSD(amount);
 }

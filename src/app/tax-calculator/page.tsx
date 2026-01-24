@@ -3,13 +3,16 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Calculator, Trash2, Edit } from 'lucide-react';
+import { Plus, Calculator, Trash2, Edit, HelpCircle } from 'lucide-react';
 import TaxWizard from './components/TaxWizard';
 import { TaxCalculation, WizardFormData } from './types';
 import { formatDKK, convertUsdToDkk } from '@/lib/tax-calculator-danish';
 import Spinner from '../components/Spinner';
+import { WalkthroughProvider, useWalkthrough } from '@/components/walkthrough/WalkthroughProvider';
+import WalkthroughOverlay from '@/components/walkthrough/WalkthroughOverlay';
+import WelcomeModal from '@/components/walkthrough/WelcomeModal';
 
-export default function TaxCalculatorPage() {
+function TaxCalculatorPageContent() {
   const [calculations, setCalculations] = useState<TaxCalculation[]>([]);
   const [loading, setLoading] = useState(true);
   const [showWizard, setShowWizard] = useState(false);
@@ -140,14 +143,14 @@ export default function TaxCalculatorPage() {
     <div className="min-h-screen bg-background p-8">
       <div className="mx-auto max-w-7xl">
         {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-8 flex items-center justify-between" data-tour="header">
           <div>
             <h1 className="text-4xl font-bold text-foreground">Tax Calculator</h1>
             <p className="mt-2 text-muted-foreground">
               Calculate your Danish taxes including RSU income and §7P benefits
             </p>
           </div>
-          <Button onClick={() => setShowWizard(true)} size="lg">
+          <Button onClick={() => setShowWizard(true)} size="lg" data-tour="new-calculation">
             <Plus className="mr-2 h-5 w-5" />
             New Calculation
           </Button>
@@ -180,7 +183,7 @@ export default function TaxCalculatorPage() {
 
         {/* Calculations Grid */}
         {!loading && calculations.length > 0 && (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3" data-tour="calculations-grid">
             {calculations.map((calc) => (
               <Card key={calc.id} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
@@ -250,5 +253,47 @@ export default function TaxCalculatorPage() {
         )}
       </div>
     </div>
+  );
+}
+
+// Default export with walkthrough wrapper
+export default function TaxCalculatorPage() {
+  const { startWalkthrough, skipWalkthrough } = useWalkthrough();
+
+  const handleStartTour = () => {
+    const tourSteps = [
+      {
+        id: 'welcome',
+        title: 'Welcome to Tax Calculator',
+        content:
+          'This tool helps you calculate your Danish taxes including income tax, AM-bidrag, and special §7P benefits for RSU income.',
+        target: '[data-tour="header"]',
+        position: 'bottom' as const,
+      },
+      {
+        id: 'new-calculation',
+        title: 'Create New Calculation',
+        content:
+          'Click here to start a new tax calculation. You will be guided through a step-by-step wizard to enter your income information.',
+        target: '[data-tour="new-calculation"]',
+        position: 'left' as const,
+      },
+      {
+        id: 'saved-calculations',
+        title: 'Saved Calculations',
+        content:
+          'All your tax calculations are saved here. You can view, edit, or delete them anytime. Each card shows a summary of the calculation.',
+        target: '[data-tour="calculations-grid"]',
+        position: 'top' as const,
+      },
+    ];
+    startWalkthrough(tourSteps);
+  };
+
+  return (
+    <>
+      <WelcomeModal onStartTour={handleStartTour} onSkip={skipWalkthrough} />
+      <TaxCalculatorPageContent />
+    </>
   );
 }

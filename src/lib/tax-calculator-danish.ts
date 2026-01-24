@@ -4,6 +4,8 @@
  * Based on 2024 rates (can be adjusted for different years)
  */
 
+import { formatDKK as formatDKKUtil } from './utils/currency-formatter';
+
 export interface TaxInput {
   yearlySalaryDkk: number;
   fradragDkk: number; // Deductions
@@ -156,14 +158,11 @@ export function calculateDanishTax(input: TaxInput): TaxResult {
 
 /**
  * Format DKK currency
+ * @deprecated Use formatDKK from '@/lib/utils/currency-formatter' instead
  */
 export function formatDKK(amount: number): string {
-  return new Intl.NumberFormat('da-DK', {
-    style: 'currency',
-    currency: 'DKK',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount);
+  // Delegate to centralized formatter (rounds to 0 decimals for backwards compatibility)
+  return formatDKKUtil(amount).replace(/,\d{2}/, '');
 }
 
 /**

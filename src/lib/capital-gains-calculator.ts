@@ -6,6 +6,7 @@
 
 import { getDb } from './db';
 import { convertUsdToDkk } from './exchange-rates';
+import { getYearDateRange } from './utils/date-filters';
 
 export interface SaleTransaction {
   id: number;
@@ -126,8 +127,7 @@ export async function getSaleTransactions(year: number): Promise<SaleTransaction
   const db = await getDb();
 
   try {
-    const startDate = `${year}-01-01`;
-    const endDate = `${year}-12-31`;
+    const { startDate, endDate } = getYearDateRange(year);
 
     const sales = db.prepare(`
       SELECT * FROM transactions
