@@ -733,16 +733,17 @@ export default function ImportsPage() {
                         {formatCurrencyValue(grant.adjusted_gain_loss)}
                       </td>
                       <td className="px-6 py-4">
-                        <button
-                          onClick={() => toggle7pStatus(grant.id, grant.covered_by_7p)}
-                          className={`rounded-lg border px-3 py-1 text-xs font-medium transition-colors ${
-                            grant.covered_by_7p
-                              ? 'border-green-600 bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900 dark:text-green-300 dark:hover:bg-green-800'
-                              : 'border-gray-300 bg-gray-100 text-gray-600 hover:bg-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-400 dark:hover:bg-gray-600'
-                          }`}
-                        >
-                          {grant.covered_by_7p ? 'Yes' : 'No'}
-                        </button>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={!!grant.covered_by_7p}
+                            onChange={() => toggle7pStatus(grant.id, grant.covered_by_7p)}
+                            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                          />
+                          <span className="text-xs text-gray-400 dark:text-gray-500">
+                            {grant.covered_by_7p ? 'Yes' : 'No'}
+                          </span>
+                        </label>
                       </td>
                     </tr>
                   ))}
