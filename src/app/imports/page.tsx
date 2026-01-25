@@ -6,6 +6,7 @@ import { formatCurrency } from '@/lib/currency';
 import Spinner from '../components/Spinner';
 
 type BrokerageType = 'morgan-stanley' | 'fidelity' | null;
+type ViewMode = 'main' | 'import';
 
 interface StockGrant {
   id: number;
@@ -23,6 +24,7 @@ interface StockGrant {
 }
 
 export default function ImportsPage() {
+  const [viewMode, setViewMode] = useState<ViewMode>('main');
   const [brokerage, setBrokerage] = useState<BrokerageType>(null);
   const [file, setFile] = useState<File | null>(null);
   const [fidelityCurrentFile, setFidelityCurrentFile] = useState<File | null>(null);
@@ -219,12 +221,57 @@ export default function ImportsPage() {
 
         {/* Upload Form */}
         <div className="mb-8 rounded-2xl bg-white p-6 shadow-lg dark:bg-gray-800">
-          {/* Brokerage Selection */}
-          {!brokerage && (
+          {/* Main Actions */}
+          {viewMode === 'main' && (
             <div className="space-y-4">
               <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                Select your brokerage
+                Actions
               </h3>
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setViewMode('import')}
+                  className="flex-1 rounded-lg bg-blue-600 p-4 text-center text-white hover:bg-blue-700"
+                >
+                  <div className="text-lg font-semibold">Import Data</div>
+                  <div className="text-sm text-blue-100">Upload brokerage statements</div>
+                </button>
+                <button
+                  onClick={handleClearData}
+                  className="flex-1 rounded-lg border-2 border-red-600 p-4 text-center text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+                >
+                  <div className="text-lg font-semibold">Clear All Data</div>
+                  <div className="text-sm opacity-75">Delete all imported records</div>
+                </button>
+              </div>
+              {message && (
+                <div
+                  className={`rounded-lg p-4 ${
+                    message.startsWith('Success') || message === 'All data cleared'
+                      ? 'bg-green-50 text-green-800 dark:bg-green-900 dark:text-green-200'
+                      : 'bg-red-50 text-red-800 dark:bg-red-900 dark:text-red-200'
+                  }`}
+                >
+                  {message}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Brokerage Selection */}
+          {viewMode === 'import' && !brokerage && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                  Select your brokerage
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => { setViewMode('main'); setMessage(''); }}
+                  className="text-sm text-blue-600 hover:underline dark:text-blue-400"
+                >
+                  ← Back
+                </button>
+              </div>
               <div className="flex gap-4">
                 <button
                   onClick={() => setBrokerage('morgan-stanley')}
@@ -245,7 +292,7 @@ export default function ImportsPage() {
           )}
 
           {/* Morgan Stanley Form */}
-          {brokerage === 'morgan-stanley' && (
+          {viewMode === 'import' && brokerage === 'morgan-stanley' && (
             <form onSubmit={handleUpload} className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white">
@@ -256,7 +303,7 @@ export default function ImportsPage() {
                   onClick={() => { setBrokerage(null); setFile(null); setMessage(''); }}
                   className="text-sm text-blue-600 hover:underline dark:text-blue-400"
                 >
-                  Change brokerage
+                  ← Back
                 </button>
               </div>
               <div>
@@ -283,16 +330,6 @@ export default function ImportsPage() {
                 >
                   {uploading ? 'Uploading...' : 'Upload & Import'}
                 </button>
-
-                {grants.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={handleClearData}
-                    className="rounded-lg border border-red-600 px-5 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 focus:outline-none focus:ring-4 focus:ring-red-300 dark:border-red-500 dark:text-red-500 dark:hover:bg-gray-700"
-                  >
-                    Clear All Data
-                  </button>
-                )}
               </div>
 
               {message && (
@@ -310,7 +347,7 @@ export default function ImportsPage() {
           )}
 
           {/* Fidelity Form */}
-          {brokerage === 'fidelity' && (
+          {viewMode === 'import' && brokerage === 'fidelity' && (
             <form onSubmit={handleUpload} className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white">
@@ -328,7 +365,7 @@ export default function ImportsPage() {
                   }}
                   className="text-sm text-blue-600 hover:underline dark:text-blue-400"
                 >
-                  Change brokerage
+                  ← Back
                 </button>
               </div>
 
@@ -426,16 +463,6 @@ export default function ImportsPage() {
                 >
                   {uploading ? 'Uploading...' : 'Upload & Import'}
                 </button>
-
-                {grants.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={handleClearData}
-                    className="rounded-lg border border-red-600 px-5 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 focus:outline-none focus:ring-4 focus:ring-red-300 dark:border-red-500 dark:text-red-500 dark:hover:bg-gray-700"
-                  >
-                    Clear All Data
-                  </button>
-                )}
               </div>
 
               {message && (
