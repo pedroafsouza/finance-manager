@@ -126,24 +126,26 @@ export default function CalendarPage() {
               View your vesting events, dividends, and transactions
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg shadow-md">
             <button
               onClick={() => setViewMode('calendar')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              className={`px-5 py-2.5 rounded-md font-semibold transition-all ${
                 viewMode === 'calendar'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  ? 'shadow-lg'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
+              style={viewMode === 'calendar' ? { background: 'linear-gradient(to right, rgb(37, 99, 235), rgb(79, 70, 229))', color: 'white' } : {}}
             >
               Calendar
             </button>
             <button
               onClick={() => setViewMode('list')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              className={`px-5 py-2.5 rounded-md font-semibold transition-all ${
                 viewMode === 'list'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  ? 'shadow-lg'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
+              style={viewMode === 'list' ? { background: 'linear-gradient(to right, rgb(37, 99, 235), rgb(79, 70, 229))', color: 'white' } : {}}
             >
               List
             </button>

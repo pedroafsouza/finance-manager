@@ -59,7 +59,12 @@ export default function Navigation() {
     { href: '/settings', label: 'Settings', icon: Settings },
   ];
 
-  const isActive = (href: string) => pathname === href;
+  const isActive = (href: string) => {
+    if (href === '/') {
+      return pathname === href;
+    }
+    return pathname === href || pathname.startsWith(href + '/');
+  };
 
   return (
     <>
