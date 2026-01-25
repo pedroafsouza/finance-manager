@@ -12,6 +12,7 @@ export async function POST(request: NextRequest) {
 
     const formData = await request.formData();
     const file = formData.get('file') as File;
+    const coveredBy7p = formData.get('coveredBy7p') === 'true';
 
     if (!file) {
       return NextResponse.json(
@@ -160,8 +161,8 @@ export async function POST(request: NextRequest) {
         INSERT INTO stock_grants (
           ticker, acquisition_date, lot_number, capital_gain_impact,
           adjusted_gain_loss, adjusted_cost_basis, adjusted_cost_basis_per_share,
-          total_shares, current_price_per_share, current_value, import_source
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          total_shares, current_price_per_share, current_value, covered_by_7p, import_source
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
       for (const holding of holdings) {
@@ -176,6 +177,7 @@ export async function POST(request: NextRequest) {
           holding.total_shares,
           holding.current_price_per_share,
           holding.current_value,
+          coveredBy7p ? 1 : 0,
           'morgan-stanley-pdf'
         );
       }

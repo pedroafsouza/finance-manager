@@ -169,11 +169,24 @@ export const initDb = async () => {
       total_shares REAL,
       current_price_per_share REAL,
       current_value REAL,
+      covered_by_7p BOOLEAN DEFAULT 0,
       import_source TEXT DEFAULT 'morgan-stanley',
       import_date TEXT DEFAULT CURRENT_TIMESTAMP,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
+  // Add covered_by_7p column if it doesn't exist
+  try {
+    const grantsInfo = db.prepare(`PRAGMA table_info(stock_grants)`).all() as any[];
+    const grantColumnNames = grantsInfo.map((col: any) => col.name);
+
+    if (!grantColumnNames.includes('covered_by_7p')) {
+      db.exec(`ALTER TABLE stock_grants ADD COLUMN covered_by_7p BOOLEAN DEFAULT 0`);
+    }
+  } catch (error) {
+    // Ignore errors if column already exists
+  }
 
   // Create exchange_rates table - caches official Danmarks Nationalbank rates
   db.exec(`

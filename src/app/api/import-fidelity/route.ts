@@ -19,6 +19,7 @@ export async function POST(request: NextRequest) {
     const currentFile = formData.get('currentFile') as File | null;
     const previousFile = formData.get('previousFile') as File | null;
     const ticker = (formData.get('ticker') as string) || 'UNKNOWN';
+    const coveredBy7p = formData.get('coveredBy7p') === 'true';
 
     if (!currentFile && !previousFile) {
       return NextResponse.json(
@@ -74,8 +75,8 @@ export async function POST(request: NextRequest) {
         INSERT INTO stock_grants (
           ticker, acquisition_date, lot_number, capital_gain_impact,
           adjusted_gain_loss, adjusted_cost_basis, adjusted_cost_basis_per_share,
-          total_shares, current_price_per_share, current_value, import_source
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          total_shares, current_price_per_share, current_value, covered_by_7p, import_source
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
       let lotNumber = 1;
@@ -108,6 +109,7 @@ export async function POST(request: NextRequest) {
           holding.quantity,
           currentPricePerShare,
           holding.current_value,
+          coveredBy7p ? 1 : 0,
           'fidelity-csv'
         );
 

@@ -20,6 +20,7 @@ interface StockGrant {
   total_shares: number;
   current_price_per_share: number;
   current_value: number;
+  covered_by_7p: number;
   import_date: string;
 }
 
@@ -32,6 +33,7 @@ export default function ImportsPage() {
   const [fidelityPreviousFile, setFidelityPreviousFile] = useState<File | null>(null);
   const [showMissingFilePrompt, setShowMissingFilePrompt] = useState(false);
   const [ticker, setTicker] = useState('');
+  const [coveredBy7p, setCoveredBy7p] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState('');
   const [grants, setGrants] = useState<StockGrant[]>([]);
@@ -46,6 +48,7 @@ export default function ImportsPage() {
     setFidelityCurrentFile(null);
     setFidelityPreviousFile(null);
     setTicker('');
+    setCoveredBy7p(false);
     setShowMissingFilePrompt(false);
   };
 
@@ -122,6 +125,7 @@ export default function ImportsPage() {
         if (fidelityCurrentFile) formData.append('currentFile', fidelityCurrentFile);
         if (fidelityPreviousFile) formData.append('previousFile', fidelityPreviousFile);
         if (ticker) formData.append('ticker', ticker);
+        formData.append('coveredBy7p', coveredBy7p.toString());
 
         const response = await fetch('/api/import-fidelity', {
           method: 'POST',
@@ -157,6 +161,7 @@ export default function ImportsPage() {
     try {
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('coveredBy7p', coveredBy7p.toString());
 
       const isPDF = file.name.toLowerCase().endsWith('.pdf');
       const endpoint = isPDF ? '/api/import-pdf' : '/api/import';
@@ -197,6 +202,26 @@ export default function ImportsPage() {
       }
     } catch (error) {
       setMessage(`Error: ${(error as Error).message}`);
+    }
+  };
+
+  const toggle7pStatus = async (id: number, currentStatus: number) => {
+    try {
+      const response = await fetch('/api/grants', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, covered_by_7p: !currentStatus }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setGrants(grants.map(g => 
+          g.id === id ? { ...g, covered_by_7p: currentStatus ? 0 : 1 } : g
+        ));
+      }
+    } catch (error) {
+      console.error('Failed to toggle 7P status:', error);
     }
   };
 
@@ -390,6 +415,28 @@ export default function ImportsPage() {
                   )}
                 </div>
 
+                {/* 7P Checkbox */}
+                <div className="flex items-start gap-3">
+                  <input
+                    id="covered-by-7p-ms"
+                    type="checkbox"
+                    checked={coveredBy7p}
+                    onChange={(e) => setCoveredBy7p(e.target.checked)}
+                    className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <div>
+                    <label
+                      htmlFor="covered-by-7p-ms"
+                      className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                      Treat all shares as covered by 7P
+                    </label>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      This can be edited later for individual entries
+                    </p>
+                  </div>
+                </div>
+
                 {message && (
                   <div className={`rounded-lg p-4 ${
                     message.startsWith('Success')
@@ -489,6 +536,28 @@ export default function ImportsPage() {
                         ✓ {fidelityPreviousFile.name}
                       </p>
                     )}
+                  </div>
+                </div>
+
+                {/* 7P Checkbox */}
+                <div className="flex items-start gap-3">
+                  <input
+                    id="covered-by-7p-fidelity"
+                    type="checkbox"
+                    checked={coveredBy7p}
+                    onChange={(e) => setCoveredBy7p(e.target.checked)}
+                    className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <div>
+                    <label
+                      htmlFor="covered-by-7p-fidelity"
+                      className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                      Treat all shares as covered by 7P
+                    </label>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      This can be edited later for individual entries
+                    </p>
                   </div>
                 </div>
 
@@ -619,6 +688,7 @@ export default function ImportsPage() {
                     <th className="px-6 py-3">Current Price</th>
                     <th className="px-6 py-3">Current Value</th>
                     <th className="px-6 py-3">Gain/Loss</th>
+                    <th className="px-6 py-3">7P</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -661,6 +731,18 @@ export default function ImportsPage() {
                         }`}
                       >
                         {formatCurrencyValue(grant.adjusted_gain_loss)}
+                      </td>
+                      <td className="px-6 py-4">
+                        <button
+                          onClick={() => toggle7pStatus(grant.id, grant.covered_by_7p)}
+                          className={`rounded-lg border px-3 py-1 text-xs font-medium transition-colors ${
+                            grant.covered_by_7p
+                              ? 'border-green-600 bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900 dark:text-green-300 dark:hover:bg-green-800'
+                              : 'border-gray-300 bg-gray-100 text-gray-600 hover:bg-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-400 dark:hover:bg-gray-600'
+                          }`}
+                        >
+                          {grant.covered_by_7p ? 'Yes' : 'No'}
+                        </button>
                       </td>
                     </tr>
                   ))}
