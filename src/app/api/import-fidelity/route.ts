@@ -118,8 +118,8 @@ export async function POST(request: NextRequest) {
       const insertTransaction = db.prepare(`
         INSERT INTO transactions (
           entry_date, activity_type, ticker, lot_number,
-          num_shares, share_price, book_value, market_value, cash_value
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          num_shares, share_price, book_value, market_value, cash_value, import_source
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
       for (const holding of previousHoldings) {
@@ -131,13 +131,39 @@ export async function POST(request: NextRequest) {
           holding.date_sold,
           'Sale',
           holding.ticker,
-          null, // lot number unknown for sold shares
+          null,
           holding.quantity,
           sharePrice,
           holding.cost_basis,
           holding.proceeds,
-          holding.proceeds
+          holding.proceeds,
+          'fidelity-csv'
         );
+      }
+
+      // Insert current holdings as vesting events (Release transactions)
+      const insertVestingTransaction = db.prepare(`
+        INSERT INTO transactions (
+          entry_date, activity_type, ticker, lot_number,
+          num_shares, share_price, book_value, market_value, cash_value, import_source
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+
+      let vestingLotNumber = 1;
+      for (const holding of currentHoldings) {
+        insertVestingTransaction.run(
+          holding.acquisition_date,
+          'Release',
+          holding.ticker,
+          vestingLotNumber,
+          holding.quantity,
+          holding.cost_basis_per_share,
+          holding.cost_basis,
+          holding.current_value,
+          null,
+          'fidelity-csv'
+        );
+        vestingLotNumber++;
       }
 
       db.exec('COMMIT');
