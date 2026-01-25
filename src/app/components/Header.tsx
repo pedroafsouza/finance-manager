@@ -189,7 +189,7 @@ export default function Header() {
                 </SelectItem>
                 <SelectItem value="DKK">
                   <div className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4" />
+                    <span className="h-4 w-4 flex items-center justify-center text-sm font-medium">kr</span>
                     <span>DKK</span>
                   </div>
                 </SelectItem>
