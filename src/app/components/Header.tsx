@@ -61,27 +61,7 @@ export default function Header() {
 
   // Select the correct portfolio value based on currency
   const portfolioValue = currency === 'USD' ? portfolioValueUSD : portfolioValueDKK;
-
-  // Debug logging
-  console.log('=== Header Debug ===');
-  console.log('prices (Map):', prices);
-  console.log('prices size:', prices.size);
-  console.log('pricesArray:', pricesArray);
-  console.log('pricesArray.length:', pricesArray.length);
-  console.log('portfolioValueUSD:', portfolioValueUSD);
-  console.log('portfolioValueDKK:', portfolioValueDKK);
-  console.log('exchangeRate:', exchangeRate);
-  console.log('currency:', currency);
-  console.log('selected portfolioValue:', portfolioValue);
-
-  if (pricesArray.length > 0) {
-    console.log('First stock:', pricesArray[0]);
-    console.log('Stock structure:', {
-      ticker: pricesArray[0]?.ticker,
-      price: pricesArray[0]?.price,
-      changePercent: pricesArray[0]?.changePercent,
-    });
-  }
+ 
 
   return (
     <nav
