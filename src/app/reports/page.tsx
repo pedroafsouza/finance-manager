@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import { useCurrencyStore } from '@/lib/stores/currency-store';
+import { useStockPricesStore } from '@/lib/stores/stock-prices-store';
 import { formatCurrency, convertCurrency } from '@/lib/currency';
 import Spinner from '../components/Spinner';
 
@@ -23,6 +24,7 @@ export default function ReportsPage() {
   const [grants, setGrants] = useState<StockGrant[]>([]);
   const [loading, setLoading] = useState(true);
   const { currency, exchangeRate } = useCurrencyStore();
+  const { prices, portfolioValueUSD, portfolioValueDKK } = useStockPricesStore();
 
   useEffect(() => {
     fetchGrants();
@@ -80,8 +82,23 @@ export default function ReportsPage() {
     );
   }
 
-  // Calculate statistics
-  const totalValue = grants.reduce((sum, g) => sum + g.current_value, 0);
+  // Calculate statistics using LIVE stock prices
+  const totalValue = currency === 'USD' ? portfolioValueUSD : portfolioValueDKK;
+
+  // Fallback to database values if live prices not available yet
+  const totalValueFallback = grants.reduce((sum, g) => {
+    const price = prices.get(g.ticker);
+    if (price) {
+      // Use live price: shares * current_price
+      const liveValue = g.total_shares * price.price;
+      return sum + (currency === 'USD' ? liveValue : liveValue * exchangeRate);
+    }
+    // Fallback to database value
+    return sum + g.current_value;
+  }, 0);
+
+  const displayValue = totalValue > 0 ? totalValue : totalValueFallback;
+
   const totalCostBasis = grants.reduce((sum, g) => sum + g.adjusted_cost_basis, 0);
   const totalGainLoss = grants.reduce((sum, g) => sum + g.adjusted_gain_loss, 0);
   const totalShares = grants.reduce((sum, g) => sum + g.total_shares, 0);
@@ -309,7 +326,7 @@ export default function ReportsPage() {
               Total Portfolio Value
             </div>
             <div className="mt-2 text-2xl font-bold text-gray-900 dark:text-white">
-              {formatCurrencyValue(totalValue)}
+              {formatCurrencyValue(displayValue)}
             </div>
           </div>
 

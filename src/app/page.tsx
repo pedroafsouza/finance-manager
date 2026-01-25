@@ -9,6 +9,7 @@ import WelcomeDialog from './components/WelcomeDialog';
 import AnalyzeButton from './components/AnalyzeButton';
 import { useDemoModeStore } from '@/lib/stores/demo-mode-store';
 import { useCurrencyStore } from '@/lib/stores/currency-store';
+import { useStockPricesStore } from '@/lib/stores/stock-prices-store';
 import { formatCurrency } from '@/lib/currency';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,6 +32,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const { isDemoMode, toggleDemoMode } = useDemoModeStore();
   const { currency, exchangeRate } = useCurrencyStore();
+  const { prices, portfolioValueUSD, portfolioValueDKK } = useStockPricesStore();
 
   useEffect(() => {
     fetchGrants();
@@ -56,8 +58,23 @@ export default function Home() {
     return formatCurrency(value, currency, exchangeRate);
   };
 
-  // Calculate statistics
-  const totalValue = grants.reduce((sum, g) => sum + g.current_value, 0);
+  // Calculate statistics using LIVE stock prices
+  const totalValue = currency === 'USD' ? portfolioValueUSD : portfolioValueDKK;
+
+  // Fallback to database values if live prices not available yet
+  const totalValueFallback = grants.reduce((sum, g) => {
+    const price = prices.get(g.ticker);
+    if (price) {
+      // Use live price: shares * current_price
+      const liveValue = g.total_shares * price.price;
+      return sum + (currency === 'USD' ? liveValue : liveValue * exchangeRate);
+    }
+    // Fallback to database value
+    return sum + g.current_value;
+  }, 0);
+
+  const displayValue = totalValue > 0 ? totalValue : totalValueFallback;
+
   const totalCostBasis = grants.reduce((sum, g) => sum + g.adjusted_cost_basis, 0);
   const totalGainLoss = grants.reduce((sum, g) => sum + g.adjusted_gain_loss, 0);
 
@@ -255,20 +272,6 @@ export default function Home() {
 
           {/* Right: Summary Cards Stacked */}
           <div className="flex flex-col gap-6">
-            <Card className="shadow-md">
-              <CardHeader className="pb-2">
-                <CardDescription>Total Portfolio Value</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">
-                  {formatCurrencyValue(totalValue)}
-                </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  Cost Basis: {formatCurrencyValue(totalCostBasis)}
-                </p>
-              </CardContent>
-            </Card>
-
             <Card className="shadow-md">
               <CardHeader className="pb-2">
                 <CardDescription>Total Gain/Loss</CardDescription>

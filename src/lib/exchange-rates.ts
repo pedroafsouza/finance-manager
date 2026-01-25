@@ -144,6 +144,14 @@ export async function getCachedRates(limit: number = 100): Promise<ExchangeRate[
 }
 
 /**
+ * Get the current/latest exchange rate (for today)
+ */
+export async function getCurrentExchangeRate(): Promise<number> {
+  const today = new Date().toISOString().split('T')[0];
+  return await getExchangeRate(today);
+}
+
+/**
  * Prefetch exchange rates for a date range
  * Useful for bulk processing transactions
  */
