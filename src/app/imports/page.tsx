@@ -231,7 +231,7 @@ export default function ImportsPage() {
           <div className="flex gap-4">
             <button
               onClick={() => setShowWizard(true)}
-              className="flex-1 rounded-lg bg-blue-600 p-4 text-center text-white hover:bg-blue-700"
+              className="flex-1 rounded-lg border-2 border-blue-600 bg-blue-600 p-4 text-center text-white hover:bg-blue-700 hover:border-blue-700"
             >
               <div className="text-lg font-semibold">Import Data</div>
               <div className="text-sm text-blue-100">Upload brokerage statements</div>
