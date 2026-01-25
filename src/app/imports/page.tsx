@@ -6,7 +6,7 @@ import { formatCurrency } from '@/lib/currency';
 import Spinner from '../components/Spinner';
 
 type BrokerageType = 'morgan-stanley' | 'fidelity' | null;
-type ViewMode = 'main' | 'import';
+type WizardStep = 1 | 2 | 3;
 
 interface StockGrant {
   id: number;
@@ -24,7 +24,8 @@ interface StockGrant {
 }
 
 export default function ImportsPage() {
-  const [viewMode, setViewMode] = useState<ViewMode>('main');
+  const [showWizard, setShowWizard] = useState(false);
+  const [wizardStep, setWizardStep] = useState<WizardStep>(1);
   const [brokerage, setBrokerage] = useState<BrokerageType>(null);
   const [file, setFile] = useState<File | null>(null);
   const [fidelityCurrentFile, setFidelityCurrentFile] = useState<File | null>(null);
@@ -36,6 +37,17 @@ export default function ImportsPage() {
   const [grants, setGrants] = useState<StockGrant[]>([]);
   const [loading, setLoading] = useState(true);
   const { currency, exchangeRate } = useCurrencyStore();
+
+  const resetWizard = () => {
+    setShowWizard(false);
+    setWizardStep(1);
+    setBrokerage(null);
+    setFile(null);
+    setFidelityCurrentFile(null);
+    setFidelityPreviousFile(null);
+    setTicker('');
+    setShowMissingFilePrompt(false);
+  };
 
   const fetchGrants = async () => {
     try {
@@ -80,11 +92,15 @@ export default function ImportsPage() {
     }
   };
 
+  const handleSelectBrokerage = (selected: BrokerageType) => {
+    setBrokerage(selected);
+    setWizardStep(2);
+  };
+
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (brokerage === 'fidelity') {
-      // Check if only one file is provided
       if ((fidelityCurrentFile && !fidelityPreviousFile) || (!fidelityCurrentFile && fidelityPreviousFile)) {
         if (!showMissingFilePrompt) {
           setShowMissingFilePrompt(true);
@@ -116,13 +132,7 @@ export default function ImportsPage() {
 
         if (data.success) {
           setMessage(`Success! Imported ${data.currentHoldings || 0} current holdings and ${data.previousHoldings || 0} sold positions`);
-          setFidelityCurrentFile(null);
-          setFidelityPreviousFile(null);
-          setTicker('');
-          const currentInput = document.getElementById('fidelity-current-input') as HTMLInputElement;
-          const previousInput = document.getElementById('fidelity-previous-input') as HTMLInputElement;
-          if (currentInput) currentInput.value = '';
-          if (previousInput) previousInput.value = '';
+          setWizardStep(3);
           await fetchGrants();
         } else {
           setMessage(`Error: ${data.error}`);
@@ -148,7 +158,6 @@ export default function ImportsPage() {
       const formData = new FormData();
       formData.append('file', file);
 
-      // Check if it's a PDF or Excel file
       const isPDF = file.name.toLowerCase().endsWith('.pdf');
       const endpoint = isPDF ? '/api/import-pdf' : '/api/import';
 
@@ -161,11 +170,7 @@ export default function ImportsPage() {
 
       if (data.success) {
         setMessage(`Success! Imported ${data.count || data.holdings || 0} records`);
-        setFile(null);
-        // Reset file input
-        const fileInput = document.getElementById('file-input') as HTMLInputElement;
-        if (fileInput) fileInput.value = '';
-        // Refresh grants list
+        setWizardStep(3);
         await fetchGrants();
       } else {
         setMessage(`Error: ${data.error}`);
@@ -207,6 +212,8 @@ export default function ImportsPage() {
     });
   };
 
+  const stepLabels = ['Select Brokerage', 'Upload Files', 'Complete'];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8 dark:from-gray-900 dark:to-gray-800">
       <div className="mx-auto max-w-7xl">
@@ -219,266 +226,348 @@ export default function ImportsPage() {
           </p>
         </div>
 
-        {/* Upload Form */}
-        <div className="mb-8 rounded-2xl bg-white p-6 shadow-lg dark:bg-gray-800">
-          {/* Main Actions */}
-          {viewMode === 'main' && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                Actions
-              </h3>
-              <div className="flex gap-4">
-                <button
-                  onClick={() => setViewMode('import')}
-                  className="flex-1 rounded-lg bg-blue-600 p-4 text-center text-white hover:bg-blue-700"
-                >
-                  <div className="text-lg font-semibold">Import Data</div>
-                  <div className="text-sm text-blue-100">Upload brokerage statements</div>
-                </button>
-                <button
-                  onClick={handleClearData}
-                  className="flex-1 rounded-lg border-2 border-red-600 p-4 text-center text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
-                >
-                  <div className="text-lg font-semibold">Clear All Data</div>
-                  <div className="text-sm opacity-75">Delete all imported records</div>
-                </button>
+        {/* Action Buttons */}
+        {!showWizard && (
+          <div className="mb-8 rounded-2xl bg-white p-6 shadow-lg dark:bg-gray-800">
+            <div className="flex gap-4">
+              <button
+                onClick={() => setShowWizard(true)}
+                className="flex-1 rounded-lg bg-blue-600 p-4 text-center text-white hover:bg-blue-700"
+              >
+                <div className="text-lg font-semibold">Import Data</div>
+                <div className="text-sm text-blue-100">Upload brokerage statements</div>
+              </button>
+              <button
+                onClick={handleClearData}
+                className="flex-1 rounded-lg border-2 border-red-600 p-4 text-center text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+              >
+                <div className="text-lg font-semibold">Clear All Data</div>
+                <div className="text-sm opacity-75">Delete all imported records</div>
+              </button>
+            </div>
+            {message && !showWizard && (
+              <div
+                className={`mt-4 rounded-lg p-4 ${
+                  message.startsWith('Success') || message === 'All data cleared'
+                    ? 'bg-green-50 text-green-800 dark:bg-green-900 dark:text-green-200'
+                    : 'bg-red-50 text-red-800 dark:bg-red-900 dark:text-red-200'
+                }`}
+              >
+                {message}
               </div>
-              {message && (
-                <div
-                  className={`rounded-lg p-4 ${
-                    message.startsWith('Success') || message === 'All data cleared'
-                      ? 'bg-green-50 text-green-800 dark:bg-green-900 dark:text-green-200'
-                      : 'bg-red-50 text-red-800 dark:bg-red-900 dark:text-red-200'
-                  }`}
-                >
-                  {message}
+            )}
+          </div>
+        )}
+
+        {/* Import Wizard */}
+        {showWizard && (
+          <div className="mb-8 rounded-2xl bg-white p-6 shadow-lg dark:bg-gray-800">
+            {/* Step Indicator */}
+            <div className="mb-8">
+              <div className="flex items-center justify-between">
+                {stepLabels.map((label, index) => {
+                  const stepNum = (index + 1) as WizardStep;
+                  const isActive = wizardStep === stepNum;
+                  const isCompleted = wizardStep > stepNum;
+                  return (
+                    <div key={label} className="flex flex-1 items-center">
+                      <div className="flex flex-col items-center">
+                        <div
+                          className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold ${
+                            isCompleted
+                              ? 'bg-green-500 text-white'
+                              : isActive
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
+                          }`}
+                        >
+                          {isCompleted ? '✓' : stepNum}
+                        </div>
+                        <span
+                          className={`mt-2 text-xs font-medium ${
+                            isActive
+                              ? 'text-blue-600 dark:text-blue-400'
+                              : 'text-gray-500 dark:text-gray-400'
+                          }`}
+                        >
+                          {label}
+                        </span>
+                      </div>
+                      {index < stepLabels.length - 1 && (
+                        <div
+                          className={`mx-4 h-1 flex-1 rounded ${
+                            wizardStep > stepNum
+                              ? 'bg-green-500'
+                              : 'bg-gray-200 dark:bg-gray-700'
+                          }`}
+                        />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Step 1: Select Brokerage */}
+            {wizardStep === 1 && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                  Which brokerage are you importing from?
+                </h3>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <button
+                    onClick={() => handleSelectBrokerage('morgan-stanley')}
+                    className="rounded-lg border-2 border-gray-200 p-6 text-left hover:border-blue-500 hover:bg-blue-50 dark:border-gray-600 dark:hover:border-blue-400 dark:hover:bg-gray-700"
+                  >
+                    <div className="text-xl font-semibold text-gray-900 dark:text-white">Morgan Stanley</div>
+                    <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">PDF or Excel statement</div>
+                  </button>
+                  <button
+                    onClick={() => handleSelectBrokerage('fidelity')}
+                    className="rounded-lg border-2 border-gray-200 p-6 text-left hover:border-blue-500 hover:bg-blue-50 dark:border-gray-600 dark:hover:border-blue-400 dark:hover:bg-gray-700"
+                  >
+                    <div className="text-xl font-semibold text-gray-900 dark:text-white">Fidelity</div>
+                    <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">CSV export files</div>
+                  </button>
                 </div>
-              )}
-            </div>
-          )}
+                <div className="pt-4">
+                  <button
+                    onClick={resetWizard}
+                    className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
 
-          {/* Brokerage Selection */}
-          {viewMode === 'import' && !brokerage && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                  Select your brokerage
-                </h3>
-                <button
-                  type="button"
-                  onClick={() => { setViewMode('main'); setMessage(''); }}
-                  className="text-sm text-blue-600 hover:underline dark:text-blue-400"
-                >
-                  ← Back
-                </button>
-              </div>
-              <div className="flex gap-4">
-                <button
-                  onClick={() => setBrokerage('morgan-stanley')}
-                  className="flex-1 rounded-lg border-2 border-gray-200 p-4 text-center hover:border-blue-500 hover:bg-blue-50 dark:border-gray-600 dark:hover:border-blue-400 dark:hover:bg-gray-700"
-                >
-                  <div className="text-lg font-semibold text-gray-900 dark:text-white">Morgan Stanley</div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">PDF or Excel</div>
-                </button>
-                <button
-                  onClick={() => setBrokerage('fidelity')}
-                  className="flex-1 rounded-lg border-2 border-gray-200 p-4 text-center hover:border-blue-500 hover:bg-blue-50 dark:border-gray-600 dark:hover:border-blue-400 dark:hover:bg-gray-700"
-                >
-                  <div className="text-lg font-semibold text-gray-900 dark:text-white">Fidelity</div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">CSV files</div>
-                </button>
-              </div>
-            </div>
-          )}
+            {/* Step 2: Upload Files - Morgan Stanley */}
+            {wizardStep === 2 && brokerage === 'morgan-stanley' && (
+              <form onSubmit={handleUpload} className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                    Upload Morgan Stanley Statement
+                  </h3>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    Select your PDF or Excel file from Morgan Stanley
+                  </p>
+                </div>
 
-          {/* Morgan Stanley Form */}
-          {viewMode === 'import' && brokerage === 'morgan-stanley' && (
-            <form onSubmit={handleUpload} className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                  Morgan Stanley Import
-                </h3>
-                <button
-                  type="button"
-                  onClick={() => { setBrokerage(null); setFile(null); setMessage(''); }}
-                  className="text-sm text-blue-600 hover:underline dark:text-blue-400"
-                >
-                  ← Back
-                </button>
-              </div>
-              <div>
-                <label
-                  htmlFor="file-input"
-                  className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >
-                  Select PDF or Excel File
-                </label>
-                <input
-                  id="file-input"
-                  type="file"
-                  accept=".xlsx,.xls,.pdf"
-                  onChange={handleFileChange}
-                  className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
-                />
-              </div>
+                <div>
+                  <label
+                    htmlFor="file-input"
+                    className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Statement File
+                  </label>
+                  <input
+                    id="file-input"
+                    type="file"
+                    accept=".xlsx,.xls,.pdf"
+                    onChange={handleFileChange}
+                    className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  />
+                  {file && (
+                    <p className="mt-2 text-sm text-green-600 dark:text-green-400">
+                      ✓ {file.name}
+                    </p>
+                  )}
+                </div>
 
-              <div className="flex gap-4">
-                <button
-                  type="submit"
-                  disabled={!file || uploading}
-                  className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {uploading ? 'Uploading...' : 'Upload & Import'}
-                </button>
-              </div>
-
-              {message && (
-                <div
-                  className={`rounded-lg p-4 ${
+                {message && (
+                  <div className={`rounded-lg p-4 ${
                     message.startsWith('Success')
                       ? 'bg-green-50 text-green-800 dark:bg-green-900 dark:text-green-200'
                       : 'bg-red-50 text-red-800 dark:bg-red-900 dark:text-red-200'
-                  }`}
-                >
-                  {message}
-                </div>
-              )}
-            </form>
-          )}
+                  }`}>
+                    {message}
+                  </div>
+                )}
 
-          {/* Fidelity Form */}
-          {viewMode === 'import' && brokerage === 'fidelity' && (
-            <form onSubmit={handleUpload} className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                  Fidelity Import
-                </h3>
-                <button
-                  type="button"
-                  onClick={() => { 
-                    setBrokerage(null); 
-                    setFidelityCurrentFile(null); 
-                    setFidelityPreviousFile(null); 
-                    setTicker('');
-                    setMessage(''); 
-                    setShowMissingFilePrompt(false);
-                  }}
-                  className="text-sm text-blue-600 hover:underline dark:text-blue-400"
-                >
-                  ← Back
-                </button>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="ticker-input"
-                  className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >
-                  Stock Ticker (e.g., AAPL, MSFT)
-                </label>
-                <input
-                  id="ticker-input"
-                  type="text"
-                  value={ticker}
-                  onChange={(e) => setTicker(e.target.value.toUpperCase())}
-                  placeholder="Enter ticker symbol"
-                  className="block w-full max-w-xs rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
-                />
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <label
-                    htmlFor="fidelity-current-input"
-                    className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                <div className="flex justify-between pt-4">
+                  <button
+                    type="button"
+                    onClick={() => { setWizardStep(1); setBrokerage(null); setFile(null); setMessage(''); }}
+                    className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
                   >
-                    Currently Held Shares (CSV)
-                  </label>
-                  <input
-                    id="fidelity-current-input"
-                    type="file"
-                    accept=".csv"
-                    onChange={handleFidelityCurrentFileChange}
-                    className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
-                  />
-                  {fidelityCurrentFile && (
-                    <p className="mt-1 text-sm text-green-600 dark:text-green-400">
-                      ✓ {fidelityCurrentFile.name}
-                    </p>
-                  )}
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="fidelity-previous-input"
-                    className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    Back
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={!file || uploading}
+                    className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    Previously Held Shares (CSV)
-                  </label>
-                  <input
-                    id="fidelity-previous-input"
-                    type="file"
-                    accept=".csv"
-                    onChange={handleFidelityPreviousFileChange}
-                    className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
-                  />
-                  {fidelityPreviousFile && (
-                    <p className="mt-1 text-sm text-green-600 dark:text-green-400">
-                      ✓ {fidelityPreviousFile.name}
-                    </p>
-                  )}
+                    {uploading ? 'Importing...' : 'Import'}
+                  </button>
                 </div>
-              </div>
+              </form>
+            )}
 
-              {showMissingFilePrompt && (
-                <div className="rounded-lg border border-yellow-300 bg-yellow-50 p-4 dark:border-yellow-600 dark:bg-yellow-900/30">
-                  <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                    {fidelityCurrentFile && !fidelityPreviousFile
-                      ? 'You only selected currently held shares. Would you also like to include previously held shares?'
-                      : 'You only selected previously held shares. Would you also like to include currently held shares?'}
+            {/* Step 2: Upload Files - Fidelity */}
+            {wizardStep === 2 && brokerage === 'fidelity' && (
+              <form onSubmit={handleUpload} className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                    Upload Fidelity CSV Files
+                  </h3>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    Upload your currently held and/or previously held shares CSV exports
                   </p>
-                  <div className="mt-3 flex gap-3">
-                    <button
-                      type="submit"
-                      className="rounded-lg bg-yellow-600 px-4 py-2 text-sm font-medium text-white hover:bg-yellow-700"
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="ticker-input"
+                    className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Stock Ticker Symbol
+                  </label>
+                  <input
+                    id="ticker-input"
+                    type="text"
+                    value={ticker}
+                    onChange={(e) => setTicker(e.target.value.toUpperCase())}
+                    placeholder="e.g., AAPL, MSFT"
+                    className="block w-full max-w-xs rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                  />
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <label
+                      htmlFor="fidelity-current-input"
+                      className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
                     >
-                      Continue without it
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowMissingFilePrompt(false)}
-                      className="rounded-lg border border-yellow-600 px-4 py-2 text-sm font-medium text-yellow-600 hover:bg-yellow-100 dark:text-yellow-400 dark:hover:bg-yellow-900/50"
+                      Currently Held Shares (CSV)
+                    </label>
+                    <input
+                      id="fidelity-current-input"
+                      type="file"
+                      accept=".csv"
+                      onChange={handleFidelityCurrentFileChange}
+                      className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    />
+                    {fidelityCurrentFile && (
+                      <p className="mt-2 text-sm text-green-600 dark:text-green-400">
+                        ✓ {fidelityCurrentFile.name}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="fidelity-previous-input"
+                      className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
                     >
-                      Add the file
-                    </button>
+                      Previously Held Shares (CSV)
+                    </label>
+                    <input
+                      id="fidelity-previous-input"
+                      type="file"
+                      accept=".csv"
+                      onChange={handleFidelityPreviousFileChange}
+                      className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                    />
+                    {fidelityPreviousFile && (
+                      <p className="mt-2 text-sm text-green-600 dark:text-green-400">
+                        ✓ {fidelityPreviousFile.name}
+                      </p>
+                    )}
                   </div>
                 </div>
-              )}
 
-              <div className="flex gap-4">
-                <button
-                  type="submit"
-                  disabled={(!fidelityCurrentFile && !fidelityPreviousFile) || uploading}
-                  className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {uploading ? 'Uploading...' : 'Upload & Import'}
-                </button>
-              </div>
+                {showMissingFilePrompt && (
+                  <div className="rounded-lg border border-yellow-300 bg-yellow-50 p-4 dark:border-yellow-600 dark:bg-yellow-900/30">
+                    <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                      {fidelityCurrentFile && !fidelityPreviousFile
+                        ? 'You only selected currently held shares. Would you also like to include previously held shares?'
+                        : 'You only selected previously held shares. Would you also like to include currently held shares?'}
+                    </p>
+                    <div className="mt-3 flex gap-3">
+                      <button
+                        type="submit"
+                        className="rounded-lg bg-yellow-600 px-4 py-2 text-sm font-medium text-white hover:bg-yellow-700"
+                      >
+                        Continue without it
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowMissingFilePrompt(false)}
+                        className="rounded-lg border border-yellow-600 px-4 py-2 text-sm font-medium text-yellow-600 hover:bg-yellow-100 dark:text-yellow-400 dark:hover:bg-yellow-900/50"
+                      >
+                        Add the file
+                      </button>
+                    </div>
+                  </div>
+                )}
 
-              {message && (
-                <div
-                  className={`rounded-lg p-4 ${
+                {message && (
+                  <div className={`rounded-lg p-4 ${
                     message.startsWith('Success')
                       ? 'bg-green-50 text-green-800 dark:bg-green-900 dark:text-green-200'
                       : 'bg-red-50 text-red-800 dark:bg-red-900 dark:text-red-200'
-                  }`}
-                >
-                  {message}
+                  }`}>
+                    {message}
+                  </div>
+                )}
+
+                <div className="flex justify-between pt-4">
+                  <button
+                    type="button"
+                    onClick={() => { 
+                      setWizardStep(1); 
+                      setBrokerage(null); 
+                      setFidelityCurrentFile(null);
+                      setFidelityPreviousFile(null);
+                      setTicker('');
+                      setMessage('');
+                      setShowMissingFilePrompt(false);
+                    }}
+                    className="rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={(!fidelityCurrentFile && !fidelityPreviousFile) || uploading}
+                    className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {uploading ? 'Importing...' : 'Import'}
+                  </button>
                 </div>
-              )}
-            </form>
-          )}
-        </div>
+              </form>
+            )}
+
+            {/* Step 3: Complete */}
+            {wizardStep === 3 && (
+              <div className="space-y-6 text-center">
+                <div className="flex justify-center">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400">
+                    <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                    Import Complete!
+                  </h3>
+                  <p className="mt-2 text-gray-500 dark:text-gray-400">
+                    {message}
+                  </p>
+                </div>
+                <div className="pt-4">
+                  <button
+                    onClick={resetWizard}
+                    className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
+                  >
+                    Done
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Data Table */}
         <div className="rounded-2xl bg-white shadow-lg dark:bg-gray-800">
