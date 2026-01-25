@@ -108,6 +108,8 @@ export const initDb = async () => {
       book_value REAL,
       market_value REAL,
       cash_value REAL,
+      acquisition_date TEXT,
+      capital_gain_impact TEXT,
       import_source TEXT DEFAULT 'morgan-stanley-pdf',
       import_date TEXT DEFAULT CURRENT_TIMESTAMP,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
@@ -186,6 +188,21 @@ export const initDb = async () => {
     }
   } catch (error) {
     // Ignore errors if column already exists
+  }
+
+  // Add acquisition_date and capital_gain_impact to transactions table if they don't exist
+  try {
+    const transInfo = db.prepare(`PRAGMA table_info(transactions)`).all() as any[];
+    const transColumnNames = transInfo.map((col: any) => col.name);
+
+    if (!transColumnNames.includes('acquisition_date')) {
+      db.exec(`ALTER TABLE transactions ADD COLUMN acquisition_date TEXT`);
+    }
+    if (!transColumnNames.includes('capital_gain_impact')) {
+      db.exec(`ALTER TABLE transactions ADD COLUMN capital_gain_impact TEXT`);
+    }
+  } catch (error) {
+    // Ignore errors if columns already exist
   }
 
   // Create exchange_rates table - caches official Danmarks Nationalbank rates

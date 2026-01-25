@@ -120,14 +120,16 @@ export async function POST(request: NextRequest) {
       const insertTransaction = db.prepare(`
         INSERT INTO transactions (
           entry_date, activity_type, ticker, lot_number,
-          num_shares, share_price, book_value, market_value, cash_value, import_source
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          num_shares, share_price, book_value, market_value, cash_value, 
+          acquisition_date, capital_gain_impact, import_source
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
       for (const holding of previousHoldings) {
         const sharePrice = holding.quantity > 0 
           ? holding.proceeds / holding.quantity 
           : 0;
+        const capitalGainImpact = holding.term.toUpperCase() === 'LONG' ? 'Long Term' : 'Short Term';
 
         insertTransaction.run(
           holding.date_sold,
@@ -139,6 +141,8 @@ export async function POST(request: NextRequest) {
           holding.cost_basis,
           holding.proceeds,
           holding.proceeds,
+          holding.acquisition_date,
+          capitalGainImpact,
           'fidelity-csv'
         );
       }

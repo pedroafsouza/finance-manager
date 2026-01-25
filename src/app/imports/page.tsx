@@ -22,6 +22,8 @@ interface StockGrant {
   current_value: number;
   covered_by_7p: number;
   import_date: string;
+  is_sold?: boolean;
+  sale_date?: string;
 }
 
 export default function ImportsPage() {
@@ -55,12 +57,52 @@ export default function ImportsPage() {
   const fetchGrants = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/grants');
-      const data = await response.json();
+      const [grantsResponse, transactionsResponse] = await Promise.all([
+        fetch('/api/grants'),
+        fetch('/api/transactions'),
+      ]);
+      const grantsData = await grantsResponse.json();
+      const transactionsData = await transactionsResponse.json();
 
-      if (data.success) {
-        setGrants(data.data);
-      }
+      const currentGrants: StockGrant[] = grantsData.success 
+        ? grantsData.data.map((g: StockGrant) => ({ ...g, is_sold: false }))
+        : [];
+      
+      // Convert sold transactions to grant-like objects
+      const soldShares: StockGrant[] = transactionsData.success
+        ? transactionsData.data
+            .filter((t: { activity_type: string }) => t.activity_type === 'Sale')
+            .map((t: { 
+              id: number; 
+              ticker: string; 
+              lot_number: number;
+              num_shares: number;
+              share_price: number;
+              book_value: number;
+              market_value: number;
+              entry_date: string;
+              acquisition_date?: string;
+              capital_gain_impact?: string;
+            }) => ({
+              id: t.id,
+              ticker: t.ticker,
+              acquisition_date: t.acquisition_date || '',
+              lot_number: t.lot_number || 0,
+              capital_gain_impact: t.capital_gain_impact || 'Short Term',
+              adjusted_gain_loss: (t.market_value || 0) - (t.book_value || 0),
+              adjusted_cost_basis: t.book_value || 0,
+              adjusted_cost_basis_per_share: t.num_shares ? (t.book_value || 0) / t.num_shares : 0,
+              total_shares: t.num_shares || 0,
+              current_price_per_share: t.share_price || 0,
+              current_value: t.market_value || 0,
+              covered_by_7p: 0,
+              import_date: '',
+              is_sold: true,
+              sale_date: t.entry_date,
+            }))
+        : [];
+
+      setGrants([...currentGrants, ...soldShares]);
     } catch (error) {
       console.error('Error fetching grants:', error);
     } finally {
@@ -679,14 +721,15 @@ export default function ImportsPage() {
               <table className="w-full text-left text-sm text-gray-700 dark:text-gray-300">
                 <thead className="bg-gray-50 text-xs uppercase text-gray-700 dark:bg-gray-700 dark:text-gray-400">
                   <tr>
+                    <th className="px-6 py-3">Status</th>
                     <th className="px-6 py-3">Ticker</th>
                     <th className="px-6 py-3">Acquisition Date</th>
                     <th className="px-6 py-3">Lot</th>
                     <th className="px-6 py-3">Type</th>
                     <th className="px-6 py-3">Shares</th>
                     <th className="px-6 py-3">Cost Basis</th>
-                    <th className="px-6 py-3">Current Price</th>
-                    <th className="px-6 py-3">Current Value</th>
+                    <th className="px-6 py-3">Price</th>
+                    <th className="px-6 py-3">Value</th>
                     <th className="px-6 py-3">Gain/Loss</th>
                     <th className="px-6 py-3">7P</th>
                   </tr>
@@ -694,10 +737,25 @@ export default function ImportsPage() {
                 <tbody>
                   {grants.map((grant) => (
                     <tr
-                      key={grant.id}
-                      className="border-b bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700"
+                      key={`${grant.is_sold ? 'sold' : 'held'}-${grant.id}`}
+                      className={`border-b dark:border-gray-700 ${
+                        grant.is_sold 
+                          ? 'bg-gray-50 text-gray-400 dark:bg-gray-900 dark:text-gray-500' 
+                          : 'bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700'
+                      }`}
                     >
-                      <td className="px-6 py-4 font-medium">{grant.ticker}</td>
+                      <td className="px-6 py-4">
+                        {grant.is_sold ? (
+                          <span className="rounded px-2 py-1 text-xs font-medium bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400">
+                            Sold
+                          </span>
+                        ) : (
+                          <span className="rounded px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                            Held
+                          </span>
+                        )}
+                      </td>
+                      <td className={`px-6 py-4 ${grant.is_sold ? '' : 'font-medium'}`}>{grant.ticker}</td>
                       <td className="px-6 py-4">
                         {formatDate(grant.acquisition_date)}
                       </td>
@@ -705,45 +763,53 @@ export default function ImportsPage() {
                       <td className="px-6 py-4">
                         <span
                           className={`rounded px-2 py-1 text-xs font-medium ${
-                            grant.capital_gain_impact === 'Long Term'
-                              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                              : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                            grant.is_sold 
+                              ? 'bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
+                              : grant.capital_gain_impact === 'Long Term'
+                                ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
                           }`}
                         >
                           {grant.capital_gain_impact}
                         </span>
                       </td>
-                      <td className="px-6 py-4">{grant.total_shares.toFixed(3)}</td>
+                      <td className="px-6 py-4">{(grant.total_shares ?? 0).toFixed(3)}</td>
                       <td className="px-6 py-4">
-                        {formatCurrencyValue(grant.adjusted_cost_basis)}
+                        {formatCurrencyValue(grant.adjusted_cost_basis ?? 0)}
                       </td>
                       <td className="px-6 py-4">
-                        {formatCurrencyValue(grant.current_price_per_share)}
+                        {formatCurrencyValue(grant.current_price_per_share ?? 0)}
                       </td>
                       <td className="px-6 py-4">
-                        {formatCurrencyValue(grant.current_value)}
+                        {formatCurrencyValue(grant.current_value ?? 0)}
                       </td>
                       <td
                         className={`px-6 py-4 font-medium ${
-                          grant.adjusted_gain_loss >= 0
-                            ? 'text-green-600 dark:text-green-400'
-                            : 'text-red-600 dark:text-red-400'
+                          grant.is_sold
+                            ? ''
+                            : grant.adjusted_gain_loss >= 0
+                              ? 'text-green-600 dark:text-green-400'
+                              : 'text-red-600 dark:text-red-400'
                         }`}
                       >
-                        {formatCurrencyValue(grant.adjusted_gain_loss)}
+                        {formatCurrencyValue(grant.adjusted_gain_loss ?? 0)}
                       </td>
                       <td className="px-6 py-4">
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={!!grant.covered_by_7p}
-                            onChange={() => toggle7pStatus(grant.id, grant.covered_by_7p)}
-                            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                          />
-                          <span className="text-xs text-gray-400 dark:text-gray-500">
-                            {grant.covered_by_7p ? 'Yes' : 'No'}
-                          </span>
-                        </label>
+                        {grant.is_sold ? (
+                          <span className="text-xs text-gray-400 dark:text-gray-500">—</span>
+                        ) : (
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={!!grant.covered_by_7p}
+                              onChange={() => toggle7pStatus(grant.id, grant.covered_by_7p)}
+                              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                            />
+                            <span className="text-xs text-gray-400 dark:text-gray-500">
+                              {grant.covered_by_7p ? 'Yes' : 'No'}
+                            </span>
+                          </label>
+                        )}
                       </td>
                     </tr>
                   ))}
