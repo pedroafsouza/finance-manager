@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Transaction, CalendarEvent } from './types';
 import { transformTransactionsToEvents } from './utils/transformTransactions';
 import FullCalendarView from './components/FullCalendarView';
+import ListView from './components/ListView';
 import EventDetailsSidebar from './components/EventDetailsSidebar';
 import { useCurrencyStore } from '@/lib/stores/currency-store';
 import { formatCurrency } from '@/lib/currency';
@@ -15,6 +16,7 @@ export default function CalendarPage() {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
   const { currency, exchangeRate } = useCurrencyStore();
 
   useEffect(() => {
@@ -115,13 +117,37 @@ export default function CalendarPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8 dark:from-gray-900 dark:to-gray-800">
       <div className="mx-auto max-w-7xl">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
-            Transaction Calendar
-          </h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-300">
-            View your vesting events, dividends, and transactions
-          </p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
+              Transaction Calendar
+            </h1>
+            <p className="mt-2 text-gray-600 dark:text-gray-300">
+              View your vesting events, dividends, and transactions
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setViewMode('calendar')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                viewMode === 'calendar'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+            >
+              Calendar
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                viewMode === 'list'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+            >
+              List
+            </button>
+          </div>
         </div>
 
         {/* Summary Cards */}
@@ -191,11 +217,18 @@ export default function CalendarPage() {
           </div>
         </div>
 
-        {/* FullCalendar */}
-        <FullCalendarView
-          events={calendarEvents}
-          onEventClick={handleEventClick}
-        />
+        {/* Calendar or List View */}
+        {viewMode === 'calendar' ? (
+          <FullCalendarView
+            events={calendarEvents}
+            onEventClick={handleEventClick}
+          />
+        ) : (
+          <ListView
+            events={calendarEvents}
+            onEventClick={handleEventClick}
+          />
+        )}
 
         {/* Event Details Sidebar */}
         <EventDetailsSidebar

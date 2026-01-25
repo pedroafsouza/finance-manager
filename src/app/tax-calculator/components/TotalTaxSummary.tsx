@@ -13,7 +13,7 @@ export default function TotalTaxSummary({ taxResult }: TotalTaxSummaryProps) {
     <div className="rounded-lg bg-primary p-6 text-primary-foreground">
       <div className="space-y-3">
         <div className="flex items-baseline justify-between">
-          <span className="text-lg">Total RSU Income Tax:</span>
+          <span className="text-lg">Income Tax:</span>
           <span className="text-3xl font-bold">
             {formatDKK(taxResult.totalTax)}
           </span>
