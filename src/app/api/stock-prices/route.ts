@@ -29,14 +29,30 @@ export async function GET(request: NextRequest) {
     // Get all user tickers
     if (all) {
       tickers = await getUserTickers(isDemoMode);
+      
+      // If no holdings, return empty result instead of error
+      if (tickers.length === 0) {
+        return NextResponse.json({
+          success: true,
+          data: {},
+          count: 0,
+          mode: isDemoMode ? 'demo' : 'live',
+          portfolio: {
+            totalValueUSD: 0,
+            totalValueDKK: 0,
+            exchangeRate: 6.9,
+          },
+          holdings: [],
+        });
+      }
     }
     // Get specific tickers
     else if (tickersParam) {
       tickers = tickersParam.split(',').map(t => t.trim().toUpperCase());
     }
 
-    // Validate we have tickers
-    if (tickers.length === 0) {
+    // Validate we have tickers (only when not using all=true)
+    if (!all && tickers.length === 0) {
       return NextResponse.json(
         {
           success: false,
