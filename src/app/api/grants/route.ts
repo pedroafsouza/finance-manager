@@ -37,17 +37,20 @@ export async function DELETE() {
     await initDb();
     const db = await getDb();
 
+    // Clear all imported data from all tables
     db.prepare('DELETE FROM stock_grants').run();
+    db.prepare('DELETE FROM holdings').run();
+    db.prepare('DELETE FROM transactions').run();
     db.close();
 
     return NextResponse.json({
       success: true,
-      message: 'All grants deleted',
+      message: 'All imported data deleted',
     });
   } catch (error) {
     console.error('Delete error:', error);
     return NextResponse.json(
-      { error: 'Failed to delete grants', details: (error as Error).message },
+      { error: 'Failed to delete data', details: (error as Error).message },
       { status: 500 }
     );
   }
