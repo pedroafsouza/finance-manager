@@ -227,86 +227,102 @@ export default function ImportsPage() {
         </div>
 
         {/* Action Buttons */}
-        {!showWizard && (
-          <div className="mb-8 rounded-2xl bg-white p-6 shadow-lg dark:bg-gray-800">
-            <div className="flex gap-4">
-              <button
-                onClick={() => setShowWizard(true)}
-                className="flex-1 rounded-lg bg-blue-600 p-4 text-center text-white hover:bg-blue-700"
-              >
-                <div className="text-lg font-semibold">Import Data</div>
-                <div className="text-sm text-blue-100">Upload brokerage statements</div>
-              </button>
-              <button
-                onClick={handleClearData}
-                className="flex-1 rounded-lg border-2 border-red-600 p-4 text-center text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
-              >
-                <div className="text-lg font-semibold">Clear All Data</div>
-                <div className="text-sm opacity-75">Delete all imported records</div>
-              </button>
-            </div>
-            {message && !showWizard && (
-              <div
-                className={`mt-4 rounded-lg p-4 ${
-                  message.startsWith('Success') || message === 'All data cleared'
-                    ? 'bg-green-50 text-green-800 dark:bg-green-900 dark:text-green-200'
-                    : 'bg-red-50 text-red-800 dark:bg-red-900 dark:text-red-200'
-                }`}
-              >
-                {message}
-              </div>
-            )}
+        <div className="mb-8 rounded-2xl bg-white p-6 shadow-lg dark:bg-gray-800">
+          <div className="flex gap-4">
+            <button
+              onClick={() => setShowWizard(true)}
+              className="flex-1 rounded-lg bg-blue-600 p-4 text-center text-white hover:bg-blue-700"
+            >
+              <div className="text-lg font-semibold">Import Data</div>
+              <div className="text-sm text-blue-100">Upload brokerage statements</div>
+            </button>
+            <button
+              onClick={handleClearData}
+              className="flex-1 rounded-lg border-2 border-red-600 p-4 text-center text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
+            >
+              <div className="text-lg font-semibold">Clear All Data</div>
+              <div className="text-sm opacity-75">Delete all imported records</div>
+            </button>
           </div>
-        )}
-
-        {/* Import Wizard */}
-        {showWizard && (
-          <div className="mb-8 rounded-2xl bg-white p-6 shadow-lg dark:bg-gray-800">
-            {/* Step Indicator */}
-            <div className="mb-8">
-              <div className="flex items-center justify-between">
-                {stepLabels.map((label, index) => {
-                  const stepNum = (index + 1) as WizardStep;
-                  const isActive = wizardStep === stepNum;
-                  const isCompleted = wizardStep > stepNum;
-                  return (
-                    <div key={label} className="flex flex-1 items-center">
-                      <div className="flex flex-col items-center">
-                        <div
-                          className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold ${
-                            isCompleted
-                              ? 'bg-green-500 text-white'
-                              : isActive
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
-                          }`}
-                        >
-                          {isCompleted ? '✓' : stepNum}
-                        </div>
-                        <span
-                          className={`mt-2 text-xs font-medium ${
-                            isActive
-                              ? 'text-blue-600 dark:text-blue-400'
-                              : 'text-gray-500 dark:text-gray-400'
-                          }`}
-                        >
-                          {label}
-                        </span>
-                      </div>
-                      {index < stepLabels.length - 1 && (
-                        <div
-                          className={`mx-4 h-1 flex-1 rounded ${
-                            wizardStep > stepNum
-                              ? 'bg-green-500'
-                              : 'bg-gray-200 dark:bg-gray-700'
-                          }`}
-                        />
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+          {message && !showWizard && (
+            <div
+              className={`mt-4 rounded-lg p-4 ${
+                message.startsWith('Success') || message === 'All data cleared'
+                  ? 'bg-green-50 text-green-800 dark:bg-green-900 dark:text-green-200'
+                  : 'bg-red-50 text-red-800 dark:bg-red-900 dark:text-red-200'
+              }`}
+            >
+              {message}
             </div>
+          )}
+        </div>
+
+        {/* Import Wizard Modal */}
+        {showWizard && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            {/* Backdrop */}
+            <div 
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+              onClick={() => wizardStep !== 3 && resetWizard()}
+            />
+            
+            {/* Modal */}
+            <div className="relative z-10 w-full max-w-2xl mx-4 rounded-2xl bg-white p-6 shadow-2xl dark:bg-gray-800">
+              {/* Close button */}
+              <button
+                onClick={resetWizard}
+                className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+              >
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+
+              {/* Step Indicator */}
+              <div className="mb-8 mt-2">
+                <div className="flex items-center justify-between">
+                  {stepLabels.map((label, index) => {
+                    const stepNum = (index + 1) as WizardStep;
+                    const isActive = wizardStep === stepNum;
+                    const isCompleted = wizardStep > stepNum;
+                    return (
+                      <div key={label} className="flex flex-1 items-center">
+                        <div className="flex flex-col items-center">
+                          <div
+                            className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-semibold ${
+                              isCompleted
+                                ? 'bg-green-500 text-white'
+                                : isActive
+                                  ? 'bg-blue-600 text-white'
+                                  : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
+                            }`}
+                          >
+                            {isCompleted ? '✓' : stepNum}
+                          </div>
+                          <span
+                            className={`mt-2 text-xs font-medium ${
+                              isActive
+                                ? 'text-blue-600 dark:text-blue-400'
+                                : 'text-gray-500 dark:text-gray-400'
+                            }`}
+                          >
+                            {label}
+                          </span>
+                        </div>
+                        {index < stepLabels.length - 1 && (
+                          <div
+                            className={`mx-4 h-1 flex-1 rounded ${
+                              wizardStep > stepNum
+                                ? 'bg-green-500'
+                                : 'bg-gray-200 dark:bg-gray-700'
+                            }`}
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
 
             {/* Step 1: Select Brokerage */}
             {wizardStep === 1 && (
@@ -566,6 +582,7 @@ export default function ImportsPage() {
                 </div>
               </div>
             )}
+            </div>
           </div>
         )}
 
