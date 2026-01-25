@@ -5,6 +5,8 @@ import { useCurrencyStore } from '@/lib/stores/currency-store';
 import { formatCurrency } from '@/lib/currency';
 import Spinner from '../components/Spinner';
 
+type BrokerageType = 'morgan-stanley' | 'fidelity' | null;
+
 interface StockGrant {
   id: number;
   ticker: string;
@@ -21,7 +23,12 @@ interface StockGrant {
 }
 
 export default function ImportsPage() {
+  const [brokerage, setBrokerage] = useState<BrokerageType>(null);
   const [file, setFile] = useState<File | null>(null);
+  const [fidelityCurrentFile, setFidelityCurrentFile] = useState<File | null>(null);
+  const [fidelityPreviousFile, setFidelityPreviousFile] = useState<File | null>(null);
+  const [showMissingFilePrompt, setShowMissingFilePrompt] = useState(false);
+  const [ticker, setTicker] = useState('');
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState('');
   const [grants, setGrants] = useState<StockGrant[]>([]);
@@ -55,9 +62,78 @@ export default function ImportsPage() {
     }
   };
 
+  const handleFidelityCurrentFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFidelityCurrentFile(e.target.files[0]);
+      setMessage('');
+      setShowMissingFilePrompt(false);
+    }
+  };
+
+  const handleFidelityPreviousFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFidelityPreviousFile(e.target.files[0]);
+      setMessage('');
+      setShowMissingFilePrompt(false);
+    }
+  };
+
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (brokerage === 'fidelity') {
+      // Check if only one file is provided
+      if ((fidelityCurrentFile && !fidelityPreviousFile) || (!fidelityCurrentFile && fidelityPreviousFile)) {
+        if (!showMissingFilePrompt) {
+          setShowMissingFilePrompt(true);
+          return;
+        }
+      }
+
+      if (!fidelityCurrentFile && !fidelityPreviousFile) {
+        setMessage('Please select at least one CSV file');
+        return;
+      }
+
+      setUploading(true);
+      setMessage('');
+      setShowMissingFilePrompt(false);
+
+      try {
+        const formData = new FormData();
+        if (fidelityCurrentFile) formData.append('currentFile', fidelityCurrentFile);
+        if (fidelityPreviousFile) formData.append('previousFile', fidelityPreviousFile);
+        if (ticker) formData.append('ticker', ticker);
+
+        const response = await fetch('/api/import-fidelity', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          setMessage(`Success! Imported ${data.currentHoldings || 0} current holdings and ${data.previousHoldings || 0} sold positions`);
+          setFidelityCurrentFile(null);
+          setFidelityPreviousFile(null);
+          setTicker('');
+          const currentInput = document.getElementById('fidelity-current-input') as HTMLInputElement;
+          const previousInput = document.getElementById('fidelity-previous-input') as HTMLInputElement;
+          if (currentInput) currentInput.value = '';
+          if (previousInput) previousInput.value = '';
+          await fetchGrants();
+        } else {
+          setMessage(`Error: ${data.error}`);
+        }
+      } catch (error) {
+        setMessage(`Error: ${(error as Error).message}`);
+      } finally {
+        setUploading(false);
+      }
+      return;
+    }
+
+    // Morgan Stanley flow
     if (!file) {
       setMessage('Please select a file');
       return;
@@ -82,7 +158,7 @@ export default function ImportsPage() {
       const data = await response.json();
 
       if (data.success) {
-        setMessage(`Success! Imported ${data.count} records`);
+        setMessage(`Success! Imported ${data.count || data.holdings || 0} records`);
         setFile(null);
         // Reset file input
         const fileInput = document.getElementById('file-input') as HTMLInputElement;
@@ -137,61 +213,244 @@ export default function ImportsPage() {
             Import Stock Grants
           </h1>
           <p className="mt-2 text-gray-600 dark:text-gray-300">
-            Upload your Morgan Stanley PDF statement or Excel file to import RSU data
+            Upload your brokerage statement to import stock holdings
           </p>
         </div>
 
         {/* Upload Form */}
         <div className="mb-8 rounded-2xl bg-white p-6 shadow-lg dark:bg-gray-800">
-          <form onSubmit={handleUpload} className="space-y-4">
-            <div>
-              <label
-                htmlFor="file-input"
-                className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                Select Excel File
-              </label>
-              <input
-                id="file-input"
-                type="file"
-                accept=".xlsx,.xls,.pdf"
-                onChange={handleFileChange}
-                className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
-              />
+          {/* Brokerage Selection */}
+          {!brokerage && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                Select your brokerage
+              </h3>
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setBrokerage('morgan-stanley')}
+                  className="flex-1 rounded-lg border-2 border-gray-200 p-4 text-center hover:border-blue-500 hover:bg-blue-50 dark:border-gray-600 dark:hover:border-blue-400 dark:hover:bg-gray-700"
+                >
+                  <div className="text-lg font-semibold text-gray-900 dark:text-white">Morgan Stanley</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">PDF or Excel</div>
+                </button>
+                <button
+                  onClick={() => setBrokerage('fidelity')}
+                  className="flex-1 rounded-lg border-2 border-gray-200 p-4 text-center hover:border-blue-500 hover:bg-blue-50 dark:border-gray-600 dark:hover:border-blue-400 dark:hover:bg-gray-700"
+                >
+                  <div className="text-lg font-semibold text-gray-900 dark:text-white">Fidelity</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">CSV files</div>
+                </button>
+              </div>
             </div>
+          )}
 
-            <div className="flex gap-4">
-              <button
-                type="submit"
-                disabled={!file || uploading}
-                className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {uploading ? 'Uploading...' : 'Upload & Import'}
-              </button>
-
-              {grants.length > 0 && (
+          {/* Morgan Stanley Form */}
+          {brokerage === 'morgan-stanley' && (
+            <form onSubmit={handleUpload} className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                  Morgan Stanley Import
+                </h3>
                 <button
                   type="button"
-                  onClick={handleClearData}
-                  className="rounded-lg border border-red-600 px-5 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 focus:outline-none focus:ring-4 focus:ring-red-300 dark:border-red-500 dark:text-red-500 dark:hover:bg-gray-700"
+                  onClick={() => { setBrokerage(null); setFile(null); setMessage(''); }}
+                  className="text-sm text-blue-600 hover:underline dark:text-blue-400"
                 >
-                  Clear All Data
+                  Change brokerage
                 </button>
-              )}
-            </div>
-
-            {message && (
-              <div
-                className={`rounded-lg p-4 ${
-                  message.startsWith('Success')
-                    ? 'bg-green-50 text-green-800 dark:bg-green-900 dark:text-green-200'
-                    : 'bg-red-50 text-red-800 dark:bg-red-900 dark:text-red-200'
-                }`}
-              >
-                {message}
               </div>
-            )}
-          </form>
+              <div>
+                <label
+                  htmlFor="file-input"
+                  className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Select PDF or Excel File
+                </label>
+                <input
+                  id="file-input"
+                  type="file"
+                  accept=".xlsx,.xls,.pdf"
+                  onChange={handleFileChange}
+                  className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+                />
+              </div>
+
+              <div className="flex gap-4">
+                <button
+                  type="submit"
+                  disabled={!file || uploading}
+                  className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {uploading ? 'Uploading...' : 'Upload & Import'}
+                </button>
+
+                {grants.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleClearData}
+                    className="rounded-lg border border-red-600 px-5 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 focus:outline-none focus:ring-4 focus:ring-red-300 dark:border-red-500 dark:text-red-500 dark:hover:bg-gray-700"
+                  >
+                    Clear All Data
+                  </button>
+                )}
+              </div>
+
+              {message && (
+                <div
+                  className={`rounded-lg p-4 ${
+                    message.startsWith('Success')
+                      ? 'bg-green-50 text-green-800 dark:bg-green-900 dark:text-green-200'
+                      : 'bg-red-50 text-red-800 dark:bg-red-900 dark:text-red-200'
+                  }`}
+                >
+                  {message}
+                </div>
+              )}
+            </form>
+          )}
+
+          {/* Fidelity Form */}
+          {brokerage === 'fidelity' && (
+            <form onSubmit={handleUpload} className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                  Fidelity Import
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => { 
+                    setBrokerage(null); 
+                    setFidelityCurrentFile(null); 
+                    setFidelityPreviousFile(null); 
+                    setTicker('');
+                    setMessage(''); 
+                    setShowMissingFilePrompt(false);
+                  }}
+                  className="text-sm text-blue-600 hover:underline dark:text-blue-400"
+                >
+                  Change brokerage
+                </button>
+              </div>
+
+              <div>
+                <label
+                  htmlFor="ticker-input"
+                  className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Stock Ticker (e.g., AAPL, MSFT)
+                </label>
+                <input
+                  id="ticker-input"
+                  type="text"
+                  value={ticker}
+                  onChange={(e) => setTicker(e.target.value.toUpperCase())}
+                  placeholder="Enter ticker symbol"
+                  className="block w-full max-w-xs rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+                />
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label
+                    htmlFor="fidelity-current-input"
+                    className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Currently Held Shares (CSV)
+                  </label>
+                  <input
+                    id="fidelity-current-input"
+                    type="file"
+                    accept=".csv"
+                    onChange={handleFidelityCurrentFileChange}
+                    className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+                  />
+                  {fidelityCurrentFile && (
+                    <p className="mt-1 text-sm text-green-600 dark:text-green-400">
+                      ✓ {fidelityCurrentFile.name}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="fidelity-previous-input"
+                    className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  >
+                    Previously Held Shares (CSV)
+                  </label>
+                  <input
+                    id="fidelity-previous-input"
+                    type="file"
+                    accept=".csv"
+                    onChange={handleFidelityPreviousFileChange}
+                    className="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
+                  />
+                  {fidelityPreviousFile && (
+                    <p className="mt-1 text-sm text-green-600 dark:text-green-400">
+                      ✓ {fidelityPreviousFile.name}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {showMissingFilePrompt && (
+                <div className="rounded-lg border border-yellow-300 bg-yellow-50 p-4 dark:border-yellow-600 dark:bg-yellow-900/30">
+                  <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                    {fidelityCurrentFile && !fidelityPreviousFile
+                      ? 'You only selected currently held shares. Would you also like to include previously held shares?'
+                      : 'You only selected previously held shares. Would you also like to include currently held shares?'}
+                  </p>
+                  <div className="mt-3 flex gap-3">
+                    <button
+                      type="submit"
+                      className="rounded-lg bg-yellow-600 px-4 py-2 text-sm font-medium text-white hover:bg-yellow-700"
+                    >
+                      Continue without it
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowMissingFilePrompt(false)}
+                      className="rounded-lg border border-yellow-600 px-4 py-2 text-sm font-medium text-yellow-600 hover:bg-yellow-100 dark:text-yellow-400 dark:hover:bg-yellow-900/50"
+                    >
+                      Add the file
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-4">
+                <button
+                  type="submit"
+                  disabled={(!fidelityCurrentFile && !fidelityPreviousFile) || uploading}
+                  className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {uploading ? 'Uploading...' : 'Upload & Import'}
+                </button>
+
+                {grants.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleClearData}
+                    className="rounded-lg border border-red-600 px-5 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 focus:outline-none focus:ring-4 focus:ring-red-300 dark:border-red-500 dark:text-red-500 dark:hover:bg-gray-700"
+                  >
+                    Clear All Data
+                  </button>
+                )}
+              </div>
+
+              {message && (
+                <div
+                  className={`rounded-lg p-4 ${
+                    message.startsWith('Success')
+                      ? 'bg-green-50 text-green-800 dark:bg-green-900 dark:text-green-200'
+                      : 'bg-red-50 text-red-800 dark:bg-red-900 dark:text-red-200'
+                  }`}
+                >
+                  {message}
+                </div>
+              )}
+            </form>
+          )}
         </div>
 
         {/* Data Table */}
